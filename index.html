@@ -152,16 +152,60 @@ body.follow .leaflet-bottom{bottom:calc(env(safe-area-inset-bottom,0px) + 62px)}
 .fkmlab{display:inline-block;font:700 11px/1 var(--f-data);background:#141a22;color:#fff;border-radius:3px;padding:2px 4px;transform:translate(-50%,-50%);white-space:nowrap}
 .fpin{display:inline-block;font:700 12px/1 var(--f-body);color:#141a22;border:2px solid #141a22;border-radius:4px;padding:3px 6px;transform:translate(10px,-50%);white-space:nowrap}
 .folbtn{display:block;width:100%;margin:10px 0 4px;font:700 16px var(--f-body);padding:13px;border:0;border-radius:5px;color:#fff;cursor:pointer;text-align:center}
+body.locked>header,body.locked>main{display:none}
+#gate{position:fixed;inset:0;z-index:3000;background:#0f1419;color:#e6ebf1;display:flex;align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top,0px)) 20px max(20px,env(safe-area-inset-bottom,0px));overflow:auto}
+#gate[hidden]{display:none!important}
+#gate .box{width:100%;max-width:380px;display:flex;flex-direction:column;gap:14px}
+#gate h1{font:700 40px/.95 var(--f-display);text-transform:uppercase;margin:0}
+#gate h1 b{color:#ffbe1f}
+#gate .who{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#gate .who button{padding:16px 10px;border:2px solid #2a3440;border-radius:8px;background:#171e26;color:#e6ebf1;cursor:pointer;text-align:left}
+#gate .who button[aria-pressed="true"]{border-color:#ffbe1f;background:#222b35}
+#gate .who b{display:block;font:700 22px/1 var(--f-display)}
+#gate .who span{font:400 13px/1.3 var(--f-body);color:#93a0b0}
+#gate input{font:500 22px var(--f-data);letter-spacing:.3em;padding:12px;border:2px solid #2a3440;border-radius:8px;background:#171e26;color:#e6ebf1;width:100%}
+#gate .go{font:700 17px var(--f-body);padding:14px;border:0;border-radius:8px;background:#ffbe1f;color:#141a22;cursor:pointer}
+#gate .err{color:#ff5045;min-height:1.3em;font-size:14px}
+#gate .lg{align-self:flex-end;font:700 13px var(--f-body);padding:6px 12px;border:1px solid #5a6676;background:transparent;color:#e6ebf1;border-radius:4px;cursor:pointer}
+#userBtn{font:600 13px var(--f-body);padding:6px 10px;border:1px solid currentColor;background:transparent;color:inherit;border-radius:4px;cursor:pointer}
+#fbBtn{position:fixed;right:max(14px,env(safe-area-inset-right,0px));bottom:calc(env(safe-area-inset-bottom,0px) + 14px);z-index:1700;font:700 14px var(--f-body);padding:12px 14px;border-radius:999px;border:2px solid var(--ink);background:var(--tc);color:#141a22;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+body.follow #fbBtn{bottom:calc(env(safe-area-inset-bottom,0px) + 124px)}
+body.locked #fbBtn{display:none}
+#fbPanel{position:fixed;left:0;right:0;bottom:0;z-index:2500;max-height:90%;overflow:auto;background:var(--surface);color:var(--ink);border-top:5px solid var(--tc);box-shadow:0 -6px 24px rgba(0,0,0,.4);padding:14px max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px))}
+#fbPanel .in{max-width:640px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+#fbPanel label{font:600 13px var(--f-body);color:var(--muted)}
+#fbPanel textarea,#fbPanel select{width:100%;font:400 16px/1.4 var(--f-body);padding:10px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+#fbPanel textarea{min-height:74px;resize:vertical}
+#fbPanel .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+#fbPanel .pri{font:700 15px var(--f-body);padding:12px 16px;border:0;border-radius:6px;background:#1faa55;color:#fff;cursor:pointer;text-decoration:none}
+#fbPanel .sec{font:600 14px var(--f-body);padding:11px 14px;border:1px solid var(--line);border-radius:6px;background:transparent;color:var(--ink);cursor:pointer}
+#fbPanel pre{white-space:pre-wrap;overflow-wrap:anywhere;font:400 14px/1.45 var(--f-body);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;margin:0}
+#sosBtn{font:800 14px var(--f-body);letter-spacing:.08em;padding:8px 14px;border:2px solid #fff;background:#d3261d;color:#fff;border-radius:6px;cursor:pointer}
+#sos{position:fixed;inset:0;z-index:2800;background:#8f1410;color:#fff;overflow:auto;padding:calc(env(safe-area-inset-top,0px) + 14px) max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px))}
+#sos.flash{animation:sosflash .5s steps(1) infinite}
+@keyframes sosflash{0%{background:#ffffff;color:#8f1410}50%{background:#d3261d;color:#fff}}
+#sos .in{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:12px}
+#sos h2{font-size:34px;margin:0}
+#sos .call{display:block;text-align:center;font:800 24px var(--f-body);padding:18px;border-radius:10px;background:#fff;color:#8f1410;text-decoration:none;border:0;cursor:pointer;width:100%}
+#sos .call.sm{font-size:17px;padding:13px;background:transparent;color:inherit;border:2px solid currentColor}
+#sos .pos{background:rgba(0,0,0,.28);border-radius:10px;padding:12px;color:#fff}
+#sos .pos b{display:block;font:700 26px/1.2 var(--f-data);overflow-wrap:anywhere}
+#sos input{width:100%;font:500 18px var(--f-data);padding:10px;border-radius:8px;border:2px solid #fff;background:rgba(0,0,0,.25);color:#fff}
+#sos ul{margin:0;padding-left:18px}#sos li{margin-bottom:4px}
+@media (max-width:900px){header.bar .wrap{gap:8px}header.bar .brand{flex:1;font-size:17px}header.bar nav{order:5;width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}header.bar nav a{white-space:nowrap}#sosBtn{margin-left:0!important}}
 /* mobile-fix */
 .tablebox a{white-space:nowrap}
 @media (max-width:900px){.diagram svg{min-width:1000px}.tablebox table{min-width:660px}.sheet .tablebox table{min-width:430px}.sheet{padding:12px}nav a{padding:7px 7px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
+<div id="gate" hidden></div>
 <header class="bar"><div class="wrap">
   <div class="brand">Rallye du Var <b>2026</b> · Modern</div>
   <nav aria-label="Sections"><a href="#live">Live</a><a href="#check">Reliability</a><a href="#overlap">Stage overlap</a><a href="#stages">Map and stages</a><a href="#route">Route</a><a href="#timecard">Time card</a><a href="#recce">Recce</a><a href="#docs">Documents</a><a href="#terms">Terms</a></nav>
-  <button id="langBtn" type="button" style="margin-left:auto;font:700 13px var(--f-body);padding:6px 12px;border:1px solid currentColor;background:transparent;color:inherit;border-radius:4px;cursor:pointer">TR</button>
+  <button id="sosBtn" type="button" style="margin-left:auto">SOS</button>
+  <button id="userBtn" type="button" hidden></button>
+  <button id="langBtn" type="button" style="font:700 13px var(--f-body);padding:6px 12px;border:1px solid currentColor;background:transparent;color:inherit;border-radius:4px;cursor:pointer">TR</button>
 </div></header>
 
 <main class="wrap">
@@ -282,6 +326,8 @@ body.follow .leaflet-bottom{bottom:calc(env(safe-area-inset-bottom,0px) + 62px)}
   </section>
 
   <footer>Sources: var-rallye.fr (Moderne documents, spectator dossier QR codes, timing V17), OpenStreetMap contributors (roads), Open-Meteo / Copernicus DEM (elevation). Stage lines are verified against the organiser's GPS points and kilometre markers (typically within 30 m). Road sections follow the organiser's general map; where marked approximate, follow the road book. Corner counts and climbs are estimates from map data, not pace notes.</footer>
+  <div id="sos" hidden></div>
+  <button type="button" id="fbBtn"></button><div id="fbPanel" hidden></div>
   <div id="fHud" hidden></div><div id="fBar" hidden></div>
 </main>
 
@@ -346,6 +392,126 @@ function applyStatic(){
   STATIC.forEach(([sel,tr])=>{const el=document.querySelector(sel);if(!el)return;if(el.dataset.en==null)el.dataset.en=el.innerHTML;el.innerHTML=LANG==="tr"?tr:el.dataset.en;});
   document.querySelectorAll(".legend span").forEach((el,i)=>{const n=el.lastChild;if(el.dataset.en==null)el.dataset.en=n.textContent;n.textContent=LANG==="tr"?LEG_TR[i]:el.dataset.en;});
   const b=document.getElementById("langBtn");if(b){b.textContent=LANG==="tr"?"EN":"TR";b.setAttribute("aria-label",LANG==="tr"?"Switch to English":"Türkçeye geç");}
+}
+
+/* ---------- sign in (who is using the app) ---------- */
+const USERS={kutay:{name:"Kutay",role:["Co-driver","Co-pilot"],h:"86f803042ee7f5db05fced03cccbf57ae0d185c50446f287f00778e9bc958e18"},deniz:{name:"Deniz",role:["Driver","Pilot"],h:"68d3ebc01e68041fc979c2835abee300d622c1ec7db4c3c3f14b49a062906959"}};
+let me=null,gateSel="kutay",gateErr="";
+try{const u=localStorage.getItem("user");if(USERS[u])me=u;}catch(e){}
+async function pinHash(u,p){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("rdv26|"+u+"|"+p));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+function userChip(){const b=document.getElementById("userBtn");if(!b)return;b.hidden=!me;if(me){b.textContent=USERS[me].name+" · "+t("Sign out","Çıkış");b.onclick=()=>{if(fol.on)folExit();me=null;try{localStorage.removeItem("user")}catch(e){}gate();};}}
+function gate(){
+  const g=document.getElementById("gate");userChip();
+  if(me){g.hidden=true;document.body.classList.remove("locked");return;}
+  document.body.classList.add("locked");g.hidden=false;
+  g.innerHTML=`<div class="box"><button type="button" class="lg" id="gLang">${LANG==="tr"?"EN":"TR"}</button><h1>Rallye du Var <b>2026</b></h1><p style="margin:0;color:#93a0b0">${t("Crew pack. Who is using it?","Ekip paketi. Kim kullanıyor?")}</p>
+    <div class="who">${Object.entries(USERS).map(([id,u])=>`<button type="button" data-u="${id}" aria-pressed="${gateSel===id}"><b>${u.name}</b><span>${t(u.role[0],u.role[1])}</span></button>`).join("")}</div>
+    <label for="gPin" style="font-size:13px;color:#93a0b0">${t("Password","Şifre")}</label><input id="gPin" type="password" inputmode="numeric" autocomplete="off" maxlength="12">
+    <button type="button" class="go" id="gGo">${t("Sign in","Giriş")}</button><div class="err" aria-live="polite">${esc(gateErr)}</div></div>`;
+  g.querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>{gateSel=b.dataset.u;gateErr="";gate();document.getElementById("gPin").focus();});
+  document.getElementById("gLang").onclick=()=>{LANG=LANG==="tr"?"en":"tr";try{localStorage.setItem("lang",LANG)}catch(e){}gate();};
+  const go=async()=>{const p=document.getElementById("gPin").value.trim();
+    if(!(window.crypto&&crypto.subtle)){gateErr=t("Sign-in needs a secure (https) page.","Giriş için güvenli (https) sayfa gerekiyor.");gate();return;}
+    if(await pinHash(gateSel,p)===USERS[gateSel].h){me=gateSel;gateErr="";try{localStorage.setItem("user",me)}catch(e){}gate();renderAll();if(map){map.invalidateSize();select(sel||"ALL");}}
+    else{gateErr=t("Wrong password.","Şifre yanlış.");gate();}};
+  document.getElementById("gGo").onclick=go;document.getElementById("gPin").onkeydown=e=>{if(e.key==="Enter")go();};
+}
+
+/* ---------- feedback to the developer (WhatsApp) ---------- */
+const BUILD="2026-11-19 22:06",FB_WA="905517023585";
+const FB_SEC={top:"Açılış",live:"Canlı (resmi site kutusu)",check:"Güvenilirlik",overlap:"Etap çakışması şeması",stages:"Harita ve etaplar",route:"Güzergah tablosu",timecard:"Zaman karnesi",recce:"Keşif planı",docs:"Dokümanlar",terms:"Terimler"};
+const FB_TYPES=[["Hata (yanlış bilgi ya da çalışmayan bir şey)","Something is wrong or not working"],["Eksik bilgi","Missing information"],["Görünüm (yer, boyut, renk)","Layout, size or colour"],["Yeni özellik","New feature"]];
+const fb={open:false,step:1,screen:"",type:0,urgent:false,now:"",want:"",warn:""};
+function fbContext(){
+  if(fol.on)return "Takip modu: "+label(fol.k)+" "+R.stages[fol.k].name;
+  let best=null;Object.keys(FB_SEC).forEach(id=>{const el=document.getElementById(id);if(!el)return;const r=el.getBoundingClientRect(),v=Math.min(r.bottom,innerHeight)-Math.max(r.top,0);if(v>0&&(!best||v>best.v))best={id,v};});
+  const id=best?best.id:"top";let nm=FB_SEC[id];
+  if(id==="stages")nm+=" > "+(sel==="ALL"||!sel?"Genel harita":label(sel)+" "+R.stages[sel].name)+(rb.on?" (rota çizici açık)":"");
+  return nm;
+}
+function fbMessage(){
+  const u=me?USERS[me].name+" ("+USERS[me].role[1].toLowerCase()+")":"bilinmiyor";
+  const dev=/android/i.test(navigator.userAgent)?"Android":/iphone|ipad/i.test(navigator.userAgent)?"iPhone":"bilgisayar";
+  const app=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()?"APK":"web";
+  return `*RdV 2026 geri bildirim*\nKimden: ${u}\nEkran: ${fb.screen}\nTür: ${FB_TYPES[fb.type][0]}\nÖncelik: ${fb.urgent?"Yarıştan önce şart":"Acil değil"}\nŞu an: ${fb.now.trim()||"(yazılmadı)"}\nİstenen: ${fb.want.trim()}\n---\nSürüm ${BUILD} · ${dev} ${app} · dil ${LANG.toUpperCase()} · harita ${baseMode} · ${navigator.onLine?"çevrimiçi":"çevrimdışı"}`;
+}
+function fbRender(){
+  const b=document.getElementById("fbBtn"),p=document.getElementById("fbPanel");
+  b.textContent=t("Feedback","Geri bildirim");b.onclick=()=>{fb.open=true;fb.step=1;fb.warn="";fb.screen=fbContext();fbRender();};
+  if(!fb.open){p.hidden=true;return;}
+  p.hidden=false;
+  const scr=[...new Set([fb.screen].concat(Object.values(FB_SEC),ORDER.map(k=>"Harita ve etaplar > "+label(k)+" "+R.stages[k].name),ORDER.map(k=>"Takip modu: "+label(k)+" "+R.stages[k].name)))];
+  if(fb.step===1){
+    p.innerHTML=`<div class="in"><h3>${t("Tell us what should change","Ne değişsin, söyle")}</h3>
+      <label for="fbScr">${t("Which screen? (filled in from where you are)","Hangi ekran? (bulunduğun yerden dolduruldu)")}</label><select id="fbScr">${scr.map(x=>`<option${x===fb.screen?" selected":""}>${esc(x)}</option>`).join("")}</select>
+      <label for="fbType">${t("What kind of change?","Ne tür bir değişiklik?")}</label><select id="fbType">${FB_TYPES.map((x,i)=>`<option value="${i}"${i===fb.type?" selected":""}>${esc(t(x[1],x[0]))}</option>`).join("")}</select>
+      <label for="fbNow">${t("What is there now, or what happens?","Şu an ne var, ne oluyor?")}</label><textarea id="fbNow" placeholder="${t("Example: the SS4 stop pin is on the wrong side of the junction","Örnek: SS4 stop pini kavşağın yanlış tarafında")}">${esc(fb.now)}</textarea>
+      <label for="fbWant">${t("What should it be?","Ne olmalı?")}</label><textarea id="fbWant" placeholder="${t("Example: it should be 60 m further, in front of the house","Örnek: 60 m ileride, evin önünde olmalı")}">${esc(fb.want)}</textarea>
+      <label class="row" style="color:var(--ink)"><input type="checkbox" id="fbUrg"${fb.urgent?" checked":""}> ${t("Needed before the rally","Yarıştan önce şart")}</label>
+      <div class="small" style="color:var(--stop)" aria-live="polite">${esc(fb.warn)}</div>
+      <div class="row"><button type="button" class="pri" id="fbNext">${t("Continue","Devam")}</button><button type="button" class="sec" id="fbClose">${t("Cancel","Vazgeç")}</button></div></div>`;
+    const read=()=>{fb.screen=document.getElementById("fbScr").value;fb.type=+document.getElementById("fbType").value;fb.now=document.getElementById("fbNow").value;fb.want=document.getElementById("fbWant").value;fb.urgent=document.getElementById("fbUrg").checked;};
+    document.getElementById("fbNext").onclick=()=>{read();
+      if(fb.want.trim().length<12){fb.warn=t("Say a little more about what it should be: which button, which number, which place.","Ne olması gerektiğini biraz daha aç: hangi düğme, hangi sayı, hangi yer.");fbRender();return;}
+      fb.warn="";fb.step=2;fbRender();};
+    document.getElementById("fbClose").onclick=()=>{read();fb.open=false;fbRender();};
+  }else{
+    const msg=fbMessage(),url="https://wa.me/"+FB_WA+"?text="+encodeURIComponent(msg);
+    p.innerHTML=`<div class="in"><h3>${t("Is this what you mean?","Bunu mu demek istiyorsun?")}</h3>
+      <p class="small">${t("This exact message goes to Çağatay on WhatsApp. If it is right, send it. You can add a screenshot in WhatsApp before sending.","Bu mesaj aynen WhatsApp'tan Çağatay'a gidecek. Doğruysa gönder. Göndermeden önce WhatsApp'ta ekran görüntüsü ekleyebilirsin.")}</p>
+      <pre>${esc(msg)}</pre>
+      <div class="row"><a class="pri" id="fbSend" href="${url}" target="_blank" rel="noopener">${t("Yes, send on WhatsApp","Evet, WhatsApp'ta gönder")}</a><button type="button" class="sec" id="fbEdit">${t("No, change it","Hayır, düzelt")}</button><button type="button" class="sec" id="fbCopy">${t("Copy","Kopyala")}</button><button type="button" class="sec" id="fbClose">${t("Close","Kapat")}</button></div>
+      <div class="small" id="fbNote" aria-live="polite"></div></div>`;
+    document.getElementById("fbEdit").onclick=()=>{fb.step=1;fbRender();};
+    document.getElementById("fbClose").onclick=()=>{fb.open=false;fbRender();};
+    document.getElementById("fbSend").onclick=()=>{setTimeout(()=>{fb.now="";fb.want="";fb.urgent=false;fb.open=false;fbRender();},600);};
+    document.getElementById("fbCopy").onclick=async()=>{const n=document.getElementById("fbNote");try{await navigator.clipboard.writeText(msg);n.textContent=t("Copied.","Kopyalandı.");}catch(e){n.textContent=t("Could not copy. Select the text above by hand.","Kopyalanamadı. Yukarıdaki metni elle seç.");}};
+  }
+}
+
+/* ---------- emergency ---------- */
+const sos={open:false,pos:null,acc:null,err:"",alarm:null,ctx:null,lines:{}};
+function sosNear(lat,lon){
+  const out=[];
+  ORDER.forEach(k=>{const s=R.stages[k];if(!sos.lines[k]){const P=dec(s.line),C=[0];for(let i=1;i<P.length;i++)C.push(C[i-1]+map.distance(P[i-1],P[i]));sos.lines[k]={P,C};}
+    const {P,C}=sos.lines[k],kx=Math.cos(lat*Math.PI/180)*111320,ky=110540;let best=null;
+    for(let i=0;i<P.length-1;i++){const x1=(P[i][1]-lon)*kx,y1=(P[i][0]-lat)*ky,x2=(P[i+1][1]-lon)*kx,y2=(P[i+1][0]-lat)*ky,dx=x2-x1,dy=y2-y1,L2=dx*dx+dy*dy,tt=L2?Math.max(0,Math.min(1,-(x1*dx+y1*dy)/L2)):0,d=Math.hypot(x1+tt*dx,y1+tt*dy);
+      if(!best||d<best.d)best={d,al:C[i]+tt*(C[i+1]-C[i])};}
+    if(best.d<120)out.push(`${label(k)} km ${(best.al*s.length*1000/C[C.length-1]/1000).toFixed(1)}`);});
+  return out;
+}
+function sosAlarm(on){
+  const el=document.getElementById("sos");
+  if(!on){if(sos.alarm){clearInterval(sos.alarm);sos.alarm=null;}if(sos.ctx){try{sos.ctx.close()}catch(e){}sos.ctx=null;}if(el)el.classList.remove("flash");return;}
+  try{const AC=window.AudioContext||window.webkitAudioContext,ctx=new AC(),o=ctx.createOscillator(),g=ctx.createGain();o.type="square";o.frequency.value=960;g.gain.value=1;o.connect(g);g.connect(ctx.destination);o.start();
+    let hi=true;sos.ctx=ctx;sos.alarm=setInterval(()=>{hi=!hi;o.frequency.setValueAtTime(hi?960:680,ctx.currentTime);},350);}catch(e){}
+  if(navigator.vibrate)try{navigator.vibrate([400,200,400,200,400])}catch(e){}
+  if(el)el.classList.add("flash");
+}
+function sosRender(){
+  const b=document.getElementById("sosBtn"),el=document.getElementById("sos");
+  b.onclick=()=>{sos.open=true;sos.err="";sosRender();
+    if("geolocation" in navigator)navigator.geolocation.getCurrentPosition(p=>{sos.pos=[p.coords.latitude,p.coords.longitude];sos.acc=p.coords.accuracy;sos.err="";sosRender();},()=>{sos.err=t("Location could not be read.","Konum okunamadı.");sosRender();},{enableHighAccuracy:true,maximumAge:5000,timeout:15000});};
+  if(!sos.open){el.hidden=true;return;}
+  el.hidden=false;
+  const p=sos.pos||fol.pos||null,near=p&&map?sosNear(p[0],p[1]):[];
+  let hq="";try{hq=localStorage.getItem("hq")||""}catch(e){}
+  const who=me?USERS[me].name:"";
+  const where=p?`${p[0].toFixed(5)}, ${p[1].toFixed(5)}`:"";
+  const msg=p?`ACİL / EMERGENCY, Rallye du Var${who?", "+who:""}. ${near.length?near.join(" / ")+". ":""}Konum / position: ${where} https://maps.google.com/?q=${p[0].toFixed(5)},${p[1].toFixed(5)}`:"";
+  el.innerHTML=`<div class="in"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px"><h2>${t("Emergency","Acil durum")}</h2><button type="button" class="call sm" id="sosClose" style="width:auto">${t("Close","Kapat")}</button></div>
+    <a class="call" href="tel:112">${t("Call 112","112'yi ara")}</a>
+    ${hq?`<a class="call" href="tel:${esc(hq.replace(/[^+0-9]/g,""))}">${t("Call Rally HQ","Yarış merkezini ara")} ${esc(hq)}</a>`:""}
+    <div class="pos"><span>${t("Your position (read this to the operator)","Konumun (operatöre bunu oku)")}</span><b>${where||esc(sos.err)||t("Reading GPS…","GPS okunuyor…")}</b>${near.length?`<b>${esc(near.join(" / "))}</b><span>${t("km counted from the stage start","km etap startından itibaren")}</span>`:(p?`<span>${t("Not on a special stage","Özel etap üzerinde değil")}</span>`:"")}${sos.acc?`<span> · GPS ±${Math.round(sos.acc)} m</span>`:""}</div>
+    ${p?`<a class="call sm" href="https://wa.me/?text=${encodeURIComponent(msg)}" target="_blank" rel="noopener">${t("Send my position on WhatsApp","Konumumu WhatsApp'tan gönder")}</a><a class="call sm" href="sms:?body=${encodeURIComponent(msg)}">${t("Send my position by SMS","Konumumu SMS ile gönder")}</a>`:""}
+    <button type="button" class="call sm" id="sosAl">${sos.alarm?t("Stop the alarm","Alarmı durdur"):t("Sound the alarm (loud, with flashing screen)","Alarmı çal (yüksek ses, yanıp sönen ekran)")}</button>
+    <div><b>${t("In the car, first:","Araçta önce:")}</b><ul><li>${t("Tracker: OK if the crew is fine, SOS (medical or fire) if you need help. It calls Rally HQ by itself.","Tracker: ekip iyiyse OK, yardım gerekiyorsa SOS (sağlık ya da yangın). Yarış merkezini kendisi arar.")}</li><li>${t("Show the OK or SOS board to the following cars. Red triangle at least 50 m before the car.","Arkadan gelen araçlara OK ya da SOS levhasını göster. Kırmızı üçgen aracın en az 50 m gerisine.")}</li><li>${t("If you retire, tell Race Direction as soon as you can (regulations 7.5.17).","Yarışı bırakırsan yarış direktörlüğüne en kısa sürede haber ver (yönetmelik 7.5.17).")}</li></ul></div>
+    <label for="sosHq">${t("Rally HQ emergency number (on the information note given at the admin checks). Saved on this phone.","Yarış merkezi acil numarası (idari kontrolde verilen bilgi notunda). Bu telefonda saklanır.")}</label><input id="sosHq" type="tel" value="${esc(hq)}" placeholder="+33 ...">
+    <p style="margin:0;font-size:13px">${t("The alarm is as loud as the phone's media volume allows: turn the volume up. This screen does not call anyone by itself.","Alarm, telefonun medya sesi ne kadar açıksa o kadar yüksek çalar: sesi sonuna kadar aç. Bu ekran kendiliğinden kimseyi aramaz.")}</p></div>`;
+  if(sos.alarm)el.classList.add("flash");
+  document.getElementById("sosClose").onclick=()=>{sosAlarm(false);sos.open=false;sosRender();};
+  document.getElementById("sosAl").onclick=()=>{sosAlarm(!sos.alarm);sosRender();};
+  document.getElementById("sosHq").onchange=e=>{try{localStorage.setItem("hq",e.target.value.trim())}catch(x){}sosRender();};
 }
 
 /* ---------- reliability ---------- */
@@ -812,10 +978,11 @@ function folHud(){
     big=km.toFixed(2);stat=fol.along>tot-15?t("Flying finish","Uçan finiş"):t(`${left.toFixed(2)} km to the finish`,`Finişe ${left.toFixed(2).replace(".",",")} km`);
   }
   hud.style.setProperty("--fc",COL[fol.k]);
-  hud.innerHTML=`<button type="button" class="fx" id="fExit" aria-label="${t("Close","Kapat")}">✕</button><div style="flex:1;min-width:0"><div class="fname">${label(fol.k)} · ${esc(s.name)}</div><div class="fstat">${esc(stat)}${fol.acc?` · GPS ±${Math.round(fol.acc)} m`:""}${fol.t&&!fol.sim&&Date.now()-fol.t>12000?" · "+t(`position ${Math.round((Date.now()-fol.t)/1000)} s old, updating`,`konum ${Math.round((Date.now()-fol.t)/1000)} sn önceki, güncelleniyor`):""}${fol.sim?" · "+t("SIMULATION","SİMÜLASYON"):""}</div></div><div class="fkm"><b>${big||"-.--"}</b><span>${sub}</span></div>`;
+  hud.innerHTML=`<button type="button" class="fx" id="fExit" aria-label="${t("Close","Kapat")}">✕</button><button type="button" class="fx" id="fSos" style="background:#d3261d;border-color:#fff;font-size:11px;font-weight:800">SOS</button><div style="flex:1;min-width:0"><div class="fname">${label(fol.k)} · ${esc(s.name)}</div><div class="fstat">${esc(stat)}${fol.acc?` · GPS ±${Math.round(fol.acc)} m`:""}${fol.t&&!fol.sim&&Date.now()-fol.t>12000?" · "+t(`position ${Math.round((Date.now()-fol.t)/1000)} s old, updating`,`konum ${Math.round((Date.now()-fol.t)/1000)} sn önceki, güncelleniyor`):""}${fol.sim?" · "+t("SIMULATION","SİMÜLASYON"):""}</div></div><div class="fkm"><b>${big||"-.--"}</b><span>${sub}</span></div>`;
   const p=s.points,nb=baseMode==="street"?t("Street","Sokak"):baseMode==="sat"?t("Satellite","Uydu"):t("Plain","Sade");
   bar.innerHTML=`<button type="button" id="fLock" aria-pressed="${fol.lock}">${t("Follow me","Beni takip et")}</button><button type="button" id="fBase">${t("Map","Harita")}: ${nb}</button><a href="https://www.google.com/maps/dir/?api=1&destination=${(fol.k==="SHK"?p.start:p.tc).join(",")}" target="_blank" rel="noopener">${t("Drive to the start (Google Maps)","Starta git (Google Maps)")}</a><button type="button" id="fSim" aria-pressed="${!!fol.sim}">${t("Try it (simulation)","Dene (simülasyon)")}</button>`;
   document.getElementById("fExit").onclick=folExit;
+  document.getElementById("fSos").onclick=()=>document.getElementById("sosBtn").click();
   document.getElementById("fLock").onclick=()=>{fol.lock=!fol.lock;if(fol.lock&&fol.pos)map.setView(fol.pos,Math.max(map.getZoom(),16));folHud();};
   document.getElementById("fBase").onclick=()=>{setBase(baseMode==="street"?"sat":baseMode==="sat"?"plain":"street",true);folHud();};
   document.getElementById("fSim").onclick=folSim;
@@ -933,10 +1100,10 @@ window.addEventListener("online",()=>{mapMsg="";if(map&&onlineBase){setBase(onli
 const TERMS=[["Épreuve spéciale (ES)","Special stage (SS)","Özel etap (ÖE)"],["Contrôle horaire (CH)","Time control (TC)","Zaman kontrol (ZK)"],["Départ","Start","Start"],["Arrivée lancée","Flying finish","Uçan finiş"],["Point stop","Stop control","Stop noktası"],["Liaison","Road section","Normal etap"],["Carnet de bord / de contrôle","Time card","Zaman karnesi"],["Carnet d'itinéraire","Road book","Road book (yol kitabı)"],["Temps idéal (TI)","Target time","Hedef süre (ideal zaman)"],["Parc d'assistance","Service park","Servis alanı"],["Regroupement","Regroup","Regrup (toplanma)"],["Reclassement","Final regroup (re-ordering)","Final regrup"],["Parc fermé","Parc fermé","Kapalı park"],["Reconnaissances","Recce","Keşif"],["Ouvreur","Opening car / notes crew","Önden giden araç"],["Directeur de course","Clerk of the course","Yarış direktörü"],["Commissaires sportifs","Stewards","Komiserler"],["Vérifications techniques","Scrutineering","Teknik kontrol"],["Zone public (ZP)","Spectator zone","Seyirci bölgesi"],["PK","Kilometre point","Kilometre noktası"],["Corde protégée","Protected corner (stakes)","Korunan viraj içi (kazık)"]];
 function terms(){document.querySelector("#terms-t tbody").innerHTML=TERMS.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join("")}</tr>`).join("");}
 
-function renderAll(){applyStatic();offlineCard();mapTools();rbRender();liveRender();checkBox();diagram();chips();select(sel||"ALL");route();timecard();recce();docs();}
+function renderAll(){applyStatic();sosRender();fbRender();userChip();offlineCard();mapTools();rbRender();liveRender();checkBox();diagram();chips();select(sel||"ALL");route();timecard();recce();docs();}
 const btn=document.getElementById("langBtn");
 if(btn)btn.addEventListener("click",()=>{LANG=LANG==="tr"?"en":"tr";try{localStorage.setItem("lang",LANG)}catch(e){}if(map)map.closePopup();renderAll();});
-initMap();terms();renderAll();
+initMap();terms();renderAll();gate();
 document.getElementById("sheet").addEventListener("click",e=>{const b=e.target.closest("[data-follow]");if(b)folEnter(b.dataset.follow);});
 if(map)map.on("dragstart",()=>{if(fol.on&&fol.lock){fol.lock=false;folHud();}});
 try{const fk=localStorage.getItem("follow");if(map&&fk&&R.stages[fk]){select(fk);folEnter(fk);}}catch(e){}
