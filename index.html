@@ -108,6 +108,9 @@ footer{padding-block:24px;color:var(--muted);font-size:12.5px;border-top:1px sol
 .legend span{display:inline-flex;gap:6px;align-items:center}
 .dot{width:11px;height:11px;border-radius:50%;display:inline-block;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--ink)}
 @media (max-width:900px){.hero,.mapgrid,.cols{grid-template-columns:1fr}#map{height:430px}.figs{grid-template-columns:repeat(2,1fr)}.kv{grid-template-columns:repeat(2,1fr)}}
+/* mobile-fix */
+.tablebox a{white-space:nowrap}
+@media (max-width:900px){.diagram svg{min-width:1000px}.tablebox table{min-width:660px}.sheet .tablebox table{min-width:430px}.sheet{padding:12px}nav a{padding:7px 7px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
