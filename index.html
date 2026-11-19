@@ -198,6 +198,18 @@ body.locked #fbBtn{display:none}
 .gobtn b{font:700 22px/1 var(--f-display)}
 .gobtn span{font-size:12.5px;color:var(--muted)}
 .gobtn:hover,.gobtn:focus-visible{box-shadow:inset 0 0 0 2px var(--ink)}
+.rbctl{background:var(--surface);color:var(--ink);border:2px solid #e6007a;border-radius:8px;padding:8px;max-width:230px;box-shadow:0 2px 8px rgba(0,0,0,.4);font:600 13px/1.3 var(--f-body)}
+.rbctl .t{display:block;margin-bottom:6px}
+.rbctl .t b{font-family:var(--f-data)}
+.rbctl button{display:block;width:100%;margin-top:5px;min-height:40px;font:700 14px var(--f-body);border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+.rbctl button.del{background:#d3261d;color:#fff;border-color:#d3261d}
+.rbctl button:disabled{opacity:.45}
+.rbpop{min-height:40px;padding:8px 12px;font:700 14px var(--f-body);border:0;border-radius:6px;background:#d3261d;color:#fff;cursor:pointer}
+body.follow .rbctl{display:none}
+.rbft{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 10px;align-items:center;margin:8px 0}
+.rbft select{width:100%;font:500 15px var(--f-body);padding:9px;border:1px solid var(--line);border-radius:6px;background:var(--bg);color:var(--ink)}
+.rbmain{display:inline-block;font:700 15px var(--f-body)!important;padding:11px 14px!important;border:0!important;border-radius:6px;background:#e6007a!important;color:#fff!important;text-decoration:none;cursor:pointer}
+#rbPanel summary{cursor:pointer;font:600 13px var(--f-body);color:var(--muted);margin-top:6px}
 /* mobile-fix */
 .tablebox a{white-space:nowrap}
 @media (max-width:900px){.diagram svg{min-width:1000px}.tablebox table{min-width:660px}.sheet .tablebox table{min-width:430px}.sheet{padding:12px}nav a{padding:7px 7px}}
@@ -284,7 +296,7 @@ body.locked #fbBtn{display:none}
       <span><i class="dot" style="background:#a040ff"></i>Recce only: SS14 return loop</span>
     </div>
     <div class="mapgrid">
-      <div class="mapcol"><div class="maptools" id="mapTools"></div><div id="map" role="region" aria-label="Rally map"></div><div id="mapMsg" class="small" aria-live="polite"></div><div class="card" id="rbPanel" hidden></div></div>
+      <div class="mapcol"><div class="maptools" id="mapTools"></div><div class="card" id="rbPanel" hidden></div><div id="map" role="region" aria-label="Rally map"></div><div id="mapMsg" class="small" aria-live="polite"></div></div>
       <div class="sheet" id="sheet" aria-live="polite"></div>
     </div>
   </section>
@@ -432,7 +444,7 @@ function gate(){
 }
 
 /* ---------- feedback to the developer (WhatsApp) ---------- */
-const BUILD="2026-11-19 22:39",FB_WA="905517023585";
+const BUILD="2026-11-19 22:48",FB_WA="905517023585";
 const FB_SEC={top:"Açılış",live:"Canlı (resmi site kutusu)",check:"Güvenilirlik",overlap:"Etap çakışması şeması",stages:"Harita ve etaplar",route:"Güzergah tablosu",timecard:"Zaman karnesi",recce:"Keşif planı",docs:"Dokümanlar",terms:"Terimler"};
 const FB_TYPES=[["Hata (yanlış bilgi ya da çalışmayan bir şey)","Something is wrong or not working"],["Eksik bilgi","Missing information"],["Görünüm (yer, boyut, renk)","Layout, size or colour"],["Yeni özellik","New feature"]];
 const AI_URL="https://rdv26-fb-k7x4m.netlify.app/api/feedback";
@@ -726,7 +738,7 @@ function drawBackground(){
 /* ---------- base map, route builder, my location ---------- */
 let baseMode="street",tileLayer=null,locOn=false,locLayer=null,locFirst=false,mapMsg="";
 try{baseMode=localStorage.getItem("base")||"street"}catch(e){}
-const rb={on:false,pts:[],markers:[],line:null,geom:null,state:"idle",km:0,min:0,seq:0,url:null};
+const rb={open:false,from:"me",to:"",msg:"",on:false,pts:[],markers:[],line:null,geom:null,state:"idle",km:0,min:0,seq:0,url:null};
 function setBase(m,keep){
   baseMode=m;if(!keep)try{localStorage.setItem("base",m)}catch(e){}
   if(!map)return;
@@ -739,17 +751,42 @@ function setBase(m,keep){
 function mapTools(){
   const el=document.getElementById("mapTools");if(!el)return;
   const b=(id,lab,on)=>`<button type="button" class="chip" data-a="${id}" aria-pressed="${on}">${lab}</button>`;
-  el.innerHTML=`<span class="small">${t("Map","Harita")}</span>`+b("street",t("Street","Sokak"),baseMode==="street")+b("sat",t("Satellite","Uydu"),baseMode==="sat")+b("plain",t("Plain","Sade"),baseMode==="plain")+`<span style="flex:1"></span>`+b("rb",t("Build a route","Rota çiz"),rb.on)+b("loc",t("My location","Konumum"),locOn);
+  el.innerHTML=`<span class="small">${t("Map","Harita")}</span>`+b("street",t("Street","Sokak"),baseMode==="street")+b("sat",t("Satellite","Uydu"),baseMode==="sat")+b("plain",t("Plain","Sade"),baseMode==="plain")+`<span style="flex:1"></span>`+b("rb",t("Build a route","Rota çiz"),rb.open)+b("loc",t("My location","Konumum"),locOn);
   el.querySelectorAll("button").forEach(x=>x.onclick=()=>{const a=x.dataset.a;
-    if(a==="rb"){rb.on=!rb.on;document.getElementById("map").style.cursor=rb.on?"crosshair":"";mapTools();rbRender();}
+    if(a==="rb"){rb.open=!rb.open;rb.msg="";if(!rb.open&&rb.on){rbStop();return;}mapTools();rbRender();}
     else if(a==="loc")locToggle();else setBase(a);});
   document.getElementById("mapMsg").textContent=mapMsg;
+}
+let rbCtlEl=null;
+function rbControl(){
+  if(!map||rbCtlEl)return;
+  const c=L.control({position:"topright"});
+  c.onAdd=()=>{rbCtlEl=L.DomUtil.create("div","rbctl");L.DomEvent.disableClickPropagation(rbCtlEl);L.DomEvent.disableScrollPropagation(rbCtlEl);return rbCtlEl;};
+  c.addTo(map);
+}
+function rbStop(){rb.on=false;const m=document.getElementById("map");if(m)m.style.cursor="";mapTools();rbRender();}
+function rbRemove(m){const i=rb.markers.indexOf(m);if(i<0)return;map.closePopup();map.removeLayer(m);rb.markers.splice(i,1);rb.pts.splice(i,1);rb.markers.forEach((x,j)=>x.setIcon(rbIcon(j)));rbCalc();}
+function rbCtlRender(){
+  rbControl();if(!rbCtlEl)return;
+  const n=rb.pts.length;
+  if(!rb.on&&!n){rbCtlEl.style.display="none";return;}
+  rbCtlEl.style.display="";
+  const dist=n>=2&&rb.state!=="loading"?` · <b>${rb.km.toFixed(1)} km</b>`:"";
+  rbCtlEl.innerHTML=`<span class="t">${rb.on?t("Route drawing is ON: each tap on the map adds a point.","Rota çizme AÇIK: haritaya her dokunuş nokta ekler."):t("Route drawing is off.","Rota çizme kapalı.")}<br>${n} ${t("points","nokta")}${dist}</span>
+    <button type="button" data-a="undo" ${n?"":"disabled"}>${t("Undo last point","Son noktayı geri al")}</button>
+    <button type="button" class="del" data-a="clear" ${n?"":"disabled"}>${t("Delete the whole route","Rotanın tamamını sil")}</button>
+    <button type="button" data-a="${rb.on?"stop":"go"}">${rb.on?t("Stop drawing (keep the route)","Çizmeyi bitir (rota kalsın)"):t("Add more points","Nokta eklemeye devam")}</button>
+    ${n?`<span class="small" style="display:block;margin-top:6px">${t("Tap a numbered point to remove just that one.","Tek bir noktayı silmek için numarasına dokun.")}</span>`:""}`;
+  rbCtlEl.querySelectorAll("button").forEach(b=>b.onclick=ev=>{L.DomEvent.stop(ev);const a=b.dataset.a;
+    if(a==="undo")rbUndo();else if(a==="clear"){rbClear();rbStop();}else if(a==="stop")rbStop();
+    else{rb.on=true;document.getElementById("map").style.cursor="crosshair";mapTools();rbRender();}});
 }
 function rbIcon(i){return L.divIcon({className:"",iconSize:[24,24],iconAnchor:[12,12],html:`<div class="rbnum">${i+1}</div>`});}
 function rbAdd(ll){
   if(!map)return;
   const m=L.marker(ll,{icon:rbIcon(rb.pts.length),draggable:true}).addTo(map);
   m.on("dragend",()=>{const i=rb.markers.indexOf(m),p=m.getLatLng();rb.pts[i]=[p.lat,p.lng];rbCalc();});
+  m.bindPopup(()=>{const b=document.createElement("button");b.type="button";b.className="rbpop";b.textContent=t("Remove this point","Bu noktayı sil");b.onclick=ev=>{L.DomEvent.stop(ev);rbRemove(m);};return b;});
   rb.pts.push([ll[0],ll[1]]);rb.markers.push(m);rbCalc();
 }
 function rbUndo(){if(!rb.pts.length)return;rb.pts.pop();map.removeLayer(rb.markers.pop());rbCalc();}
@@ -773,20 +810,31 @@ async function rbCalc(){
   rb.line=L.layerGroup([L.polyline(rb.geom,{color:"#fff",weight:8,opacity:.9,interactive:false}),L.polyline(rb.geom,{color:"#e6007a",weight:4,opacity:1,dashArray:rb.state==="fail"?"6 6":null,interactive:false})]).addTo(map);
   rbRender();
 }
+function rbPlaces(){
+  const V=id=>R.venues.find(v=>v.id===id),o=[];
+  [["SRV",t("Service park","Servis alanı")],["PF",t("Parc fermé","Kapalı park")],["CIN",t("Admin checks / final regroup","İdari kontrol / final regrup")],["REG",t("Regroup Pignans","Regrup Pignans")]].forEach(([id,nm])=>o.push([V(id).ll.join(","),nm]));
+  ORDER.forEach(k=>{const s=R.stages[k],lb=label(k);if(k!=="SHK")o.push([s.points.tc.join(","),lb+" TC ("+s.name+")"]);o.push([s.points.start.join(","),lb+" start"]);o.push([s.points.stop.join(","),lb+" stop"]);});
+  return o;
+}
+function rbGo(){
+  const to=rb.to;rb.msg="";
+  if(!to){rb.msg=t("Choose where you are going.","Nereye gideceğini seç.");rbRender();return;}
+  const run=from=>{rbClear();rbAdd(from);rbAdd(to.split(",").map(Number));if(map)map.fitBounds(L.latLngBounds([from,to.split(",").map(Number)]).pad(.2));};
+  if(rb.from!=="me"){run(rb.from.split(",").map(Number));return;}
+  if(!("geolocation" in navigator)){rb.msg=t("This device gives no location. Choose a starting place instead.","Bu cihaz konum vermiyor. Başlangıç için bir yer seç.");rbRender();return;}
+  rb.msg=t("Reading your position…","Konumun okunuyor…");rbRender();
+  navigator.geolocation.getCurrentPosition(p=>{rb.msg="";run([p.coords.latitude,p.coords.longitude]);},()=>{rb.msg=t("Your position could not be read. Allow location, or choose a starting place.","Konumun okunamadı. Konuma izin ver ya da başlangıç için bir yer seç.");rbRender();},{enableHighAccuracy:true,maximumAge:10000,timeout:15000});
+}
 function rbRender(){
+  rbCtlRender();
   const el=document.getElementById("rbPanel");if(!el)return;
-  if(!rb.on&&!rb.pts.length){el.hidden=true;return;}
+  if(!rb.open&&!rb.pts.length){el.hidden=true;return;}
   el.hidden=false;
-  const n=rb.pts.length,opt=[];
-  const V=id=>R.venues.find(v=>v.id===id);
-  [["SRV",t("Service park","Servis alanı")],["PF",t("Parc fermé","Kapalı park")],["CIN",t("Admin checks / final regroup","İdari kontrol / final regrup")],["REG",t("Regroup Pignans","Regrup Pignans")]].forEach(([id,nm])=>opt.push([V(id).ll,nm]));
-  ORDER.forEach(k=>{const s=R.stages[k],lb=label(k);if(k!=="SHK")opt.push([s.points.tc,lb+" TC"]);opt.push([s.points.start,lb+" start"]);opt.push([s.points.stop,lb+" stop"]);});
+  const n=rb.pts.length,opt=rbPlaces();
   let sum="";
-  if(n===0)sum=t("No points yet.","Henüz nokta yok.");
-  else if(n===1)sum=t("1 point. Add the next one.","1 nokta. Sıradakini ekle.");
-  else if(rb.state==="loading")sum=t("Calculating…","Hesaplanıyor…");
-  else if(rb.state==="ok")sum=`${n} ${t("points","nokta")} · <b>${rb.km.toFixed(1)} km</b> · ${t("about","yaklaşık")} ${Math.round(rb.min)} ${t("min","dk")}`;
-  else sum=`${n} ${t("points","nokta")} · ${rb.km.toFixed(1)} km ${t("in a straight line. The routing service did not answer, so the road could not be drawn.","kuş uçuşu. Rota servisi cevap vermedi, yol çizilemedi.")}`;
+  if(n>=2&&rb.state==="loading")sum=t("Calculating…","Hesaplanıyor…");
+  else if(n>=2&&rb.state==="ok")sum=`<b>${rb.km.toFixed(1)} km</b> · ${t("about","yaklaşık")} ${Math.round(rb.min)} ${t("min","dk")}`;
+  else if(n>=2)sum=`${rb.km.toFixed(1)} km ${t("in a straight line. The routing service did not answer, so the road could not be drawn.","kuş uçuşu. Rota servisi cevap vermedi, yol çizilemedi.")}`;
   let links="";
   if(n>=2){
     const mid=rb.pts.slice(1,-1),step=Math.max(1,Math.ceil(mid.length/9)),wp=mid.filter((p,i)=>i%step===0).slice(0,9);
@@ -794,16 +842,25 @@ function rbRender(){
     if(rb.url){URL.revokeObjectURL(rb.url);rb.url=null;}
     let gpx="";
     if(rb.geom&&rb.state==="ok"){rb.url=URL.createObjectURL(new Blob([`<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="rally-pack" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>My route</name><trkseg>${rb.geom.map(p=>`<trkpt lat="${p[0].toFixed(6)}" lon="${p[1].toFixed(6)}"/>`).join("")}</trkseg></trk></gpx>`],{type:"application/gpx+xml"}));
-      gpx=` · <a href="${rb.url}" download="my-route.gpx">${t("Save as GPX (opens in MAPS.ME, OsmAnd)","GPX olarak kaydet (MAPS.ME, OsmAnd açar)")}</a>`;}
-    links=`<p><a href="${g}" target="_blank" rel="noopener">${t("Open in Google Maps","Google Maps'te aç")}</a>${gpx}${mid.length>9?`<br><span class="small">${t("Google Maps takes at most 9 points in between; some of yours are skipped there.","Google Maps arada en fazla 9 nokta alıyor; seninkilerin bir kısmı orada atlanır.")}</span>`:""}</p>`;
+      gpx=NATIVE?"":` · <a href="${rb.url}" download="my-route.gpx">${t("Save as GPX","GPX olarak kaydet")}</a>`;}
+    links=`<p style="margin:6px 0"><a class="rbmain" href="${g}" target="_blank" rel="noopener">${t("Navigate in Google Maps","Google Maps'te navigasyonu aç")}</a>${gpx}${mid.length>9?`<br><span class="small">${t("Google Maps takes at most 9 points in between; some of yours are skipped there.","Google Maps arada en fazla 9 nokta alıyor; seninkilerin bir kısmı orada atlanır.")}</span>`:""}</p>`;
   }
-  el.innerHTML=`<h3>${t("Route builder","Rota çizici")}</h3>
-    <p class="small">${rb.on?t("Tap the map to add points in order. The road between them is calculated for you. Drag a numbered point to move it.","Noktaları sırayla eklemek için haritaya dokun. Aradaki yol senin için hesaplanır. Numaralı noktayı sürükleyerek taşıyabilirsin."):t("Route building is off. Turn on \"Build a route\" to add more points.","Rota çizme kapalı. Nokta eklemek için \"Rota çiz\"i aç.")}</p>
-    <div class="rbrow"><select id="rbAddSel" aria-label="${t("Add a rally point","Ralli noktası ekle")}"><option value="">${t("Add a rally point…","Ralli noktası ekle…")}</option>${opt.map(([ll,nm])=>`<option value="${ll[0]},${ll[1]}">${esc(nm)}</option>`).join("")}</select><button type="button" id="rbUndoBtn" ${n?"":"disabled"}>${t("Undo last","Sonuncuyu sil")}</button><button type="button" id="rbClearBtn" ${n?"":"disabled"}>${t("Clear","Temizle")}</button></div>
-    <div class="rbsum mono">${sum}</div>${links}
-    <p class="small">${t("An ordinary road route from a public routing service on OpenStreetMap data. It is not the official road book route and needs an internet connection.","OpenStreetMap verisiyle çalışan açık bir rota servisinden gelen normal yol rotası. Resmi road book rotası değildir ve internet bağlantısı ister.")}</p>`;
-  document.getElementById("rbAddSel").onchange=e=>{if(e.target.value){rbAdd(e.target.value.split(",").map(Number));}};
-  document.getElementById("rbUndoBtn").onclick=rbUndo;document.getElementById("rbClearBtn").onclick=rbClear;
+  const sel=(id,val,withMe)=>`<select id="${id}">${withMe?`<option value="me"${val==="me"?" selected":""}>${t("My position","Konumum")}</option>`:`<option value="">${t("Choose…","Seç…")}</option>`}${opt.map(([v,nm])=>`<option value="${v}"${v===val?" selected":""}>${esc(nm)}</option>`).join("")}</select>`;
+  el.innerHTML=`<h3>${t("Route","Rota")}</h3>
+    <div class="rbft"><label for="rbFrom">${t("From","Nereden")}</label>${sel("rbFrom",rb.from,true)}<label for="rbTo">${t("To","Nereye")}</label>${sel("rbTo",rb.to,false)}</div>
+    <div class="rbrow"><button type="button" class="rbmain" id="rbGoBtn">${t("Show the route","Rotayı göster")}</button>${n?`<button type="button" id="rbClearBtn">${t("Delete the route","Rotayı sil")}</button>`:""}<button type="button" id="rbCloseBtn">${t("Close","Kapat")}</button></div>
+    <div class="small" style="color:var(--stop)" aria-live="polite">${esc(rb.msg)}</div>
+    ${sum?`<div class="rbsum mono">${sum}</div>`:""}${links}
+    <details${rb.on?" open":""}><summary>${t("Add points by tapping the map (advanced)","Haritaya dokunarak nokta ekle (ileri)")}</summary>
+      <p class="small">${t("While this is on, every tap on the map adds a point, in order. Turn it off when you are done. Buttons to undo or delete appear on the map itself.","Bu açıkken haritaya her dokunuş sırayla bir nokta ekler. İşin bitince kapat. Geri alma ve silme düğmeleri haritanın üstünde çıkar.")}</p>
+      <div class="rbrow"><button type="button" id="rbTapBtn" aria-pressed="${rb.on}">${rb.on?t("Tapping adds points: ON (tap to turn off)","Dokununca nokta ekle: AÇIK (kapatmak için dokun)"):t("Tapping adds points: off (tap to turn on)","Dokununca nokta ekle: kapalı (açmak için dokun)")}</button></div></details>
+    <p class="small">${t("An ordinary road route from a public routing service on OpenStreetMap data. It is not the official road book route and needs internet.","OpenStreetMap verisiyle çalışan açık bir rota servisinden gelen normal yol rotası. Resmi road book rotası değildir ve internet ister.")}</p>`;
+  document.getElementById("rbFrom").onchange=e=>{rb.from=e.target.value;};
+  document.getElementById("rbTo").onchange=e=>{rb.to=e.target.value;};
+  document.getElementById("rbGoBtn").onclick=rbGo;
+  document.getElementById("rbCloseBtn").onclick=()=>{rb.open=false;if(rb.on)rbStop();else{mapTools();rbRender();}};
+  const cb=document.getElementById("rbClearBtn");if(cb)cb.onclick=()=>{rbClear();if(rb.on)rbStop();};
+  document.getElementById("rbTapBtn").onclick=()=>{if(rb.on)rbStop();else{rb.on=true;document.getElementById("map").style.cursor="crosshair";mapTools();rbRender();}};
 }
 function locToggle(){
   if(!map)return;locOn=!locOn;mapMsg="";
@@ -1081,6 +1138,8 @@ function folStopBg(){if(fol.bg!=null&&NATIVE){try{window.Capacitor.Plugins.Backg
 async function folWake(){try{if("wakeLock" in navigator&&fol.on)fol.wake=await navigator.wakeLock.request("screen");}catch(e){}}
 function folEnter(k){
   if(!map||fol.on)return;
+  if(rb.pts.length)rbClear();
+  if(rb.on)rbStop();
   const s=R.stages[k];fol.on=true;fol.k=k;fol.idx=-1;fol.lock=true;fol.along=null;fol.off=null;fol.acc=null;fol.err="";fol.marker=null;fol.pos=null;fol.trail=null;
   fol.pts=dec(s.line);fol.cum=[0];for(let i=1;i<fol.pts.length;i++)fol.cum.push(fol.cum[i-1]+map.distance(fol.pts[i-1],fol.pts[i]));
   fol.scale=s.length*1000/fol.cum[fol.cum.length-1];
