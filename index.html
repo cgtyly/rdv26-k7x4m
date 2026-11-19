@@ -420,7 +420,7 @@ function gate(){
 }
 
 /* ---------- feedback to the developer (WhatsApp) ---------- */
-const BUILD="2026-11-19 22:07",FB_WA="905517023585";
+const BUILD="2026-11-19 22:11",FB_WA="905517023585";
 const FB_SEC={top:"Açılış",live:"Canlı (resmi site kutusu)",check:"Güvenilirlik",overlap:"Etap çakışması şeması",stages:"Harita ve etaplar",route:"Güzergah tablosu",timecard:"Zaman karnesi",recce:"Keşif planı",docs:"Dokümanlar",terms:"Terimler"};
 const FB_TYPES=[["Hata (yanlış bilgi ya da çalışmayan bir şey)","Something is wrong or not working"],["Eksik bilgi","Missing information"],["Görünüm (yer, boyut, renk)","Layout, size or colour"],["Yeni özellik","New feature"]];
 const fb={open:false,step:1,screen:"",type:0,urgent:false,now:"",want:"",warn:""};
@@ -1099,7 +1099,7 @@ function offlineCard(){
   el.innerHTML=`<h3>${t("Use it like an app, also without internet","Uygulama gibi kullan, internetsiz de")}</h3>
     <p>${t("<b>Works without internet</b> once this page has been opened online: the Plain map with every stage, pin and road section, stage sheets, time card, recce plan, and the documents you saved with the button below.","Bu sayfa bir kez internetteyken açıldıktan sonra <b>internetsiz çalışanlar</b>: bütün etap, pin ve normal etaplarla Sade harita, etap sayfaları, zaman karnesi, keşif planı ve aşağıdaki düğmeyle kaydettiğin dokümanlar.")}</p>
     <p>${t("<b>Needs internet:</b> Street and Satellite maps, the route builder, the live box, and Google Maps links (unless the area is saved offline inside Google Maps).","<b>İnternet isteyenler:</b> Sokak ve Uydu haritası, rota çizici, canlı kutu ve Google Maps linkleri (bölge Google Maps'in içinde çevrimdışı kaydedilmediyse).")}</p>
-    <div class="rbrow">${deferredInstall?`<button type="button" id="instBtn">${t("Install on this device","Bu cihaza kur")}</button>`:""}<button type="button" id="offBtn">${t("Save all documents on this device (about 16 MB)","Tüm dokümanları bu cihaza kaydet (yaklaşık 16 MB)")}</button><span class="small" id="offStatus"></span></div>
+    <div class="rbrow">${deferredInstall?`<button type="button" id="instBtn">${t("Install on this device","Bu cihaza kur")}</button>`:""}${/android/i.test(navigator.userAgent)||!/iphone|ipad/i.test(navigator.userAgent)?`<a href="app/RdV2026.apk" download style="font:600 13px var(--f-body);padding:6px 8px;border:1px solid var(--ink);background:var(--ink);color:var(--bg);border-radius:4px;text-decoration:none">${t("Android app (APK): keeps following with the screen off","Android uygulaması (APK): ekran kapalıyken de takip eder")}</a>`:""}<button type="button" id="offBtn">${t("Save all documents on this device (about 16 MB)","Tüm dokümanları bu cihaza kaydet (yaklaşık 16 MB)")}</button><span class="small" id="offStatus"></span></div>
     <p class="small">${esc(offMsg||saved)}</p>
     <p class="small">${inApp?t("You are using the installed app.","Kurulu uygulamayı kullanıyorsun."):ios?t("iPhone: open this page in Safari, tap Share, then \"Add to Home Screen\".","iPhone: bu sayfayı Safari'de aç, Paylaş'a dokun, sonra \"Ana Ekrana Ekle\"."):t("Android: Chrome menu (three dots), then \"Add to Home screen\" or \"Install app\".","Android: Chrome menüsü (üç nokta), sonra \"Ana ekrana ekle\" ya da \"Uygulamayı yükle\".")}</p>`;
   const ib=document.getElementById("instBtn");
