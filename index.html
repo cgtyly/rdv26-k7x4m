@@ -193,6 +193,11 @@ body.locked #fbBtn{display:none}
 #sos input{width:100%;font:500 18px var(--f-data);padding:10px;border-radius:8px;border:2px solid #fff;background:rgba(0,0,0,.25);color:#fff}
 #sos ul{margin:0;padding-left:18px}#sos li{margin-bottom:4px}
 @media (max-width:900px){header.bar .wrap{gap:8px}header.bar .brand{flex:1;font-size:17px}header.bar nav{order:5;width:100%;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}header.bar nav a{white-space:nowrap}#sosBtn{margin-left:0!important}}
+.gogrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:8px}
+.gobtn{display:flex;flex-direction:column;gap:3px;text-align:left;padding:10px 12px;border:0;border-left:8px solid var(--gc,#888);border-radius:6px;background:var(--surface);color:var(--ink);cursor:pointer;box-shadow:inset 0 0 0 1px var(--line)}
+.gobtn b{font:700 22px/1 var(--f-display)}
+.gobtn span{font-size:12.5px;color:var(--muted)}
+.gobtn:hover,.gobtn:focus-visible{box-shadow:inset 0 0 0 2px var(--ink)}
 /* mobile-fix */
 .tablebox a{white-space:nowrap}
 @media (max-width:900px){.diagram svg{min-width:1000px}.tablebox table{min-width:660px}.sheet .tablebox table{min-width:430px}.sheet{padding:12px}nav a{padding:7px 7px}}
@@ -202,13 +207,20 @@ body.locked #fbBtn{display:none}
 <div id="gate" hidden></div>
 <header class="bar"><div class="wrap">
   <div class="brand">Rallye du Var <b>2026</b> · Modern</div>
-  <nav aria-label="Sections"><a href="#live">Live</a><a href="#check">Reliability</a><a href="#overlap">Stage overlap</a><a href="#stages">Map and stages</a><a href="#route">Route</a><a href="#timecard">Time card</a><a href="#recce">Recce</a><a href="#docs">Documents</a><a href="#terms">Terms</a></nav>
+  <nav aria-label="Sections"><a href="#go">Follow a stage</a><a href="#live">Live</a><a href="#check">Reliability</a><a href="#overlap">Stage overlap</a><a href="#stages">Map and stages</a><a href="#route">Route</a><a href="#timecard">Time card</a><a href="#recce">Recce</a><a href="#docs">Documents</a><a href="#terms">Terms</a></nav>
   <button id="sosBtn" type="button" style="margin-left:auto">SOS</button>
   <button id="userBtn" type="button" hidden></button>
   <button id="langBtn" type="button" style="font:700 13px var(--f-body);padding:6px 12px;border:1px solid currentColor;background:transparent;color:inherit;border-radius:4px;cursor:pointer">TR</button>
 </div></header>
 
 <main class="wrap">
+  <section id="go" aria-labelledby="go-h">
+    <div class="eyebrow">On the road</div>
+    <h2 id="go-h">Pick the stage, follow it like navigation</h2>
+    <p class="lede">Tap the stage you are about to drive. The screen switches to a full-screen map with only that stage in its own colour, your position on it, the km from the start and the distance to the finish.</p>
+    <div id="goBox"></div>
+  </section>
+
   <div class="hero">
     <div>
       <div class="eyebrow">72nd Rallye du Var · French Rally Championship final · Sainte-Maxime</div>
@@ -357,7 +369,7 @@ const dt=s=>LANG==="tr"?s.replace(/^(\w+) (\d+) (\w+)/,(m,a,b,c)=>`${b} ${DTR[c]
 
 /* ---------- static text (Turkish) ---------- */
 const STATIC=[
-["nav a[href='#live']","Canlı"],["#live .eyebrow","Bültenler ve değişiklikler, doğrudan var-rallye.fr'den"],["#lv-h","Resmi site, canlı"],["#live .lede","Bu kutu organizasyonun Moderne sayfalarını doğrudan okuyup bu paketin hazırlandığı haliyle karşılaştırır. Yeni bülten, yeni zaman çizelgesi, kayıt listesi ya da road book, organizasyon yayınladığı anda burada görünür."],["#resCard","<h3>Etap zamanları, sonuçlar ve resmi ilan panosu</h3><p>Bunlar bu sayfaya çekilmiyor. Etap zamanlarını ve sıralamaları organizasyonun zamanlama firması yayınlıyor; 26-29 Kasım arasında resmi ilan panosu da aşağıdaki iki sitede.</p><ul><li><a href=\"https://www.pksoft.fr/\" target=\"_blank\" rel=\"noopener\">pksoft.fr</a>: canlı etap zamanları, sıralamalar, resmi ilan panosu. 19 Kasım itibarıyla Rallye du Var orada yaklaşan yarış olarak listeli (27-29 Kasım); sonuç sayfası henüz açılmadı.</li><li>FFSA Live uygulaması (aynı veriler telefonda): <a href=\"https://play.google.com/store/apps/details?id=com.ffsa.live\" target=\"_blank\" rel=\"noopener\">Android</a> · <a href=\"https://itunes.apple.com/fr/app/ffsalive/id971328464\" target=\"_blank\" rel=\"noopener\">iPhone</a></li><li><a href=\"https://var-rallye.fr/concurrents/moderne/additifs\" target=\"_blank\" rel=\"noopener\">var-rallye.fr, bültenler sayfası</a>: yukarıdaki kutunun izlediği sayfa.</li></ul><p class=\"small\">Sadece pksoft.fr'ye konan bir bülten yukarıdaki kutuda görünmez. Yarış sırasında ikisine de bak.</p>"],["nav a[href='#check']","Güvenilirlik"],["#check .eyebrow","Ne doğrulandı, ne doğrulanmadı"],["#ck-h","Buna ne kadar güvenilir"],["#check .lede","19 Kasım 2026'da organizasyonun yayınladığı dokümanlardan hazırlandı. Road book'un, zaman karnesinin ve görevlilerin talimatlarının yerini tutmaz. Aşağıda her bilginin nereden geldiği yazıyor."],["nav a[href='#overlap']","Etap çakışması"],["nav a[href='#stages']","Harita ve etaplar"],["nav a[href='#route']","Güzergah"],["nav a[href='#timecard']","Zaman karnesi"],["nav a[href='#recce']","Keşif"],["nav a[href='#docs']","Dokümanlar"],["nav a[href='#terms']","Terimler"],
+["nav a[href='#go']","Etap takip"],["#go .eyebrow","Yolda"],["#go-h","Etabı seç, navigasyon gibi takip et"],["#go .lede","Süreceğin etaba dokun. Ekran tam ekran haritaya geçer: sadece o etap kendi renginde, üzerinde senin konumun, starttan itibaren km ve finişe kalan mesafe."],["nav a[href='#live']","Canlı"],["#live .eyebrow","Bültenler ve değişiklikler, doğrudan var-rallye.fr'den"],["#lv-h","Resmi site, canlı"],["#live .lede","Bu kutu organizasyonun Moderne sayfalarını doğrudan okuyup bu paketin hazırlandığı haliyle karşılaştırır. Yeni bülten, yeni zaman çizelgesi, kayıt listesi ya da road book, organizasyon yayınladığı anda burada görünür."],["#resCard","<h3>Etap zamanları, sonuçlar ve resmi ilan panosu</h3><p>Bunlar bu sayfaya çekilmiyor. Etap zamanlarını ve sıralamaları organizasyonun zamanlama firması yayınlıyor; 26-29 Kasım arasında resmi ilan panosu da aşağıdaki iki sitede.</p><ul><li><a href=\"https://www.pksoft.fr/\" target=\"_blank\" rel=\"noopener\">pksoft.fr</a>: canlı etap zamanları, sıralamalar, resmi ilan panosu. 19 Kasım itibarıyla Rallye du Var orada yaklaşan yarış olarak listeli (27-29 Kasım); sonuç sayfası henüz açılmadı.</li><li>FFSA Live uygulaması (aynı veriler telefonda): <a href=\"https://play.google.com/store/apps/details?id=com.ffsa.live\" target=\"_blank\" rel=\"noopener\">Android</a> · <a href=\"https://itunes.apple.com/fr/app/ffsalive/id971328464\" target=\"_blank\" rel=\"noopener\">iPhone</a></li><li><a href=\"https://var-rallye.fr/concurrents/moderne/additifs\" target=\"_blank\" rel=\"noopener\">var-rallye.fr, bültenler sayfası</a>: yukarıdaki kutunun izlediği sayfa.</li></ul><p class=\"small\">Sadece pksoft.fr'ye konan bir bülten yukarıdaki kutuda görünmez. Yarış sırasında ikisine de bak.</p>"],["nav a[href='#check']","Güvenilirlik"],["#check .eyebrow","Ne doğrulandı, ne doğrulanmadı"],["#ck-h","Buna ne kadar güvenilir"],["#check .lede","19 Kasım 2026'da organizasyonun yayınladığı dokümanlardan hazırlandı. Road book'un, zaman karnesinin ve görevlilerin talimatlarının yerini tutmaz. Aşağıda her bilginin nereden geldiği yazıyor."],["nav a[href='#overlap']","Etap çakışması"],["nav a[href='#stages']","Harita ve etaplar"],["nav a[href='#route']","Güzergah"],["nav a[href='#timecard']","Zaman karnesi"],["nav a[href='#recce']","Keşif"],["nav a[href='#docs']","Dokümanlar"],["nav a[href='#terms']","Terimler"],
 [".hero .eyebrow","72. Rallye du Var · Fransa Ralli Şampiyonası finali · Sainte-Maxime"],[".hero h1","10 yolda 14 etap"],
 [".hero p","Organizasyonun dokümanlarından (var-rallye.fr, Moderne) hazırlanan ekip çalışma paketi. Her özel etap gerçek yola oturtuldu, organizasyonun kendi GPS noktaları ve kilometre işaretleriyle doğrulandı. Birkaç etap aynı yolu paylaşıyor: aşağıdaki şema tam olarak nerede olduğunu gösteriyor. Kısaltmalar: SS = özel etap (Fransız tabelalarında ES), TC = zaman kontrol (Fransızca CH)."],
 [".figs div:nth-child(1) span","özel etap"],[".figs div:nth-child(2) span","km özel etap"],[".figs div:nth-child(3) span","km toplam"],[".figs div:nth-child(4) b","27 - 29"],[".figs div:nth-child(4) span","Kasım, 3 gün"],
@@ -420,7 +432,7 @@ function gate(){
 }
 
 /* ---------- feedback to the developer (WhatsApp) ---------- */
-const BUILD="2026-11-19 22:18",FB_WA="905517023585";
+const BUILD="2026-11-19 22:39",FB_WA="905517023585";
 const FB_SEC={top:"Açılış",live:"Canlı (resmi site kutusu)",check:"Güvenilirlik",overlap:"Etap çakışması şeması",stages:"Harita ve etaplar",route:"Güzergah tablosu",timecard:"Zaman karnesi",recce:"Keşif planı",docs:"Dokümanlar",terms:"Terimler"};
 const FB_TYPES=[["Hata (yanlış bilgi ya da çalışmayan bir şey)","Something is wrong or not working"],["Eksik bilgi","Missing information"],["Görünüm (yer, boyut, renk)","Layout, size or colour"],["Yeni özellik","New feature"]];
 const AI_URL="https://rdv26-fb-k7x4m.netlify.app/api/feedback";
@@ -544,6 +556,15 @@ function sosRender(){
   document.getElementById("sosClose").onclick=()=>{sosAlarm(false);sos.open=false;sosRender();};
   document.getElementById("sosAl").onclick=()=>{sosAlarm(!sos.alarm);sosRender();};
   document.getElementById("sosHq").onchange=e=>{try{localStorage.setItem("hq",e.target.value.trim())}catch(x){}sosRender();};
+}
+
+/* ---------- pick a stage and follow it ---------- */
+function goRender(){
+  const box=document.getElementById("goBox");if(!box)return;
+  const shk=R.stages.SHK;
+  box.innerHTML=R.days.map(d=>`<div class="daybar" style="margin-top:14px"><h3>${t("Day","Gün")} ${d.day} · ${esc(dt(d.date))}</h3></div><div class="gogrid">${d.rows.filter(r=>r[2]==="SS").map(r=>{const k=R.ss_route[r[0]],s=R.stages[k];return `<button type="button" class="gobtn" data-go-follow="${k}" style="--gc:${COL[k]}"><b>${r[0]}</b><span>${esc(s.name)}</span><span class="mono">${fmt(s.length)} km · ${r[7]}</span></button>`;}).join("")}</div>`).join("")
+    +`<div class="daybar" style="margin-top:14px"><h3>${t("Thursday 26 November","26 Kasım Perşembe")}</h3></div><div class="gogrid"><button type="button" class="gobtn" data-go-follow="SHK" style="--gc:${COL.SHK}"><b>Shakedown</b><span>Gassin</span><span class="mono">${fmt(shk.length)} km · 10:00-17:00</span></button></div>
+    <p class="small" style="margin-top:10px">${t("The time is the first car's start. In the follow screen: \"Drive to the start\" opens Google Maps navigation to the time control, \"Try it\" shows how it looks without moving. Close with the cross at the top left.","Saat, ilk aracın start saati. Takip ekranında: \"Starta git\" zaman kontrole Google Maps navigasyonu açar, \"Dene\" hareket etmeden nasıl göründüğünü gösterir. Sol üstteki çarpıyla kapanır.")}</p>`;
 }
 
 /* ---------- reliability ---------- */
@@ -1145,10 +1166,11 @@ window.addEventListener("online",()=>{mapMsg="";if(map&&onlineBase){setBase(onli
 const TERMS=[["Épreuve spéciale (ES)","Special stage (SS)","Özel etap (ÖE)"],["Contrôle horaire (CH)","Time control (TC)","Zaman kontrol (ZK)"],["Départ","Start","Start"],["Arrivée lancée","Flying finish","Uçan finiş"],["Point stop","Stop control","Stop noktası"],["Liaison","Road section","Normal etap"],["Carnet de bord / de contrôle","Time card","Zaman karnesi"],["Carnet d'itinéraire","Road book","Road book (yol kitabı)"],["Temps idéal (TI)","Target time","Hedef süre (ideal zaman)"],["Parc d'assistance","Service park","Servis alanı"],["Regroupement","Regroup","Regrup (toplanma)"],["Reclassement","Final regroup (re-ordering)","Final regrup"],["Parc fermé","Parc fermé","Kapalı park"],["Reconnaissances","Recce","Keşif"],["Ouvreur","Opening car / notes crew","Önden giden araç"],["Directeur de course","Clerk of the course","Yarış direktörü"],["Commissaires sportifs","Stewards","Komiserler"],["Vérifications techniques","Scrutineering","Teknik kontrol"],["Zone public (ZP)","Spectator zone","Seyirci bölgesi"],["PK","Kilometre point","Kilometre noktası"],["Corde protégée","Protected corner (stakes)","Korunan viraj içi (kazık)"]];
 function terms(){document.querySelector("#terms-t tbody").innerHTML=TERMS.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join("")}</tr>`).join("");}
 
-function renderAll(){applyStatic();sosRender();fbRender();userChip();offlineCard();mapTools();rbRender();liveRender();checkBox();diagram();chips();select(sel||"ALL");route();timecard();recce();docs();}
+function renderAll(){applyStatic();goRender();sosRender();fbRender();userChip();offlineCard();mapTools();rbRender();liveRender();checkBox();diagram();chips();select(sel||"ALL");route();timecard();recce();docs();}
 const btn=document.getElementById("langBtn");
 if(btn)btn.addEventListener("click",()=>{LANG=LANG==="tr"?"en":"tr";try{localStorage.setItem("lang",LANG)}catch(e){}if(map)map.closePopup();renderAll();});
 initMap();terms();renderAll();gate();
+document.getElementById("goBox").addEventListener("click",e=>{const b=e.target.closest("[data-go-follow]");if(b&&map){select(b.dataset.goFollow);folEnter(b.dataset.goFollow);}});
 document.getElementById("sheet").addEventListener("click",e=>{const b=e.target.closest("[data-follow]");if(b)folEnter(b.dataset.follow);});
 if(map)map.on("dragstart",()=>{if(fol.on&&fol.lock){fol.lock=false;folHud();}});
 try{const fk=localStorage.getItem("follow");if(map&&fk&&R.stages[fk]){select(fk);folEnter(fk);}}catch(e){}

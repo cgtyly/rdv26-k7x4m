@@ -1,5 +1,5 @@
 /* Offline support. Core page is cached on install; documents are cached when opened or saved. */
-const V = "rdv26-20261119221857";
+const V = "rdv26-20261119223945";
 const CORE = ["./", "index.html", "vendor/leaflet.min.js", "manifest.webmanifest", "icons/icon-192.png", "icons/icon-512.png", "live.json"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(V).then(c => c.addAll(CORE)).then(() => self.skipWaiting()));
