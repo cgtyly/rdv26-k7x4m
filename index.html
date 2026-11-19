@@ -126,6 +126,13 @@ footer{padding-block:24px;color:var(--muted);font-size:12.5px;border-top:1px sol
 .badge{font:700 10px/1 var(--f-body);letter-spacing:.06em;padding:3px 5px;border-radius:3px;background:var(--stop);color:#fff;margin-right:5px}
 .badge.ok{background:var(--chip);color:var(--muted)}
 tr.me td{background:color-mix(in srgb,var(--tc) 30%,transparent);font-weight:600}
+.mapcol{min-width:0;display:flex;flex-direction:column;gap:8px}
+.maptools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.rbnum{width:24px;height:24px;border-radius:50%;background:#e6007a;color:#fff;border:2px solid #fff;font:700 12px/20px var(--f-body);text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.5)}
+.rbrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}
+.rbrow select,.rbrow button{font:600 13px var(--f-body);padding:6px 8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;max-width:100%}
+.rbrow button{cursor:pointer}
+.rbsum{font-size:18px;margin:4px 0}
 /* mobile-fix */
 .tablebox a{white-space:nowrap}
 @media (max-width:900px){.diagram svg{min-width:1000px}.tablebox table{min-width:660px}.sheet .tablebox table{min-width:430px}.sheet{padding:12px}nav a{padding:7px 7px}}
@@ -202,7 +209,7 @@ tr.me td{background:color-mix(in srgb,var(--tc) 30%,transparent);font-weight:600
       <span><i class="dot" style="background:#a040ff"></i>Recce only: SS14 return loop</span>
     </div>
     <div class="mapgrid">
-      <div id="map" role="region" aria-label="Rally map"></div>
+      <div class="mapcol"><div class="maptools" id="mapTools"></div><div id="map" role="region" aria-label="Rally map"></div><div id="mapMsg" class="small" aria-live="polite"></div><div class="card" id="rbPanel" hidden></div></div>
       <div class="sheet" id="sheet" aria-live="polite"></div>
     </div>
   </section>
@@ -441,7 +448,9 @@ function initMap(){
   map=L.map("map",{preferCanvas:true,zoomSnap:.25,attributionControl:true});
   map.fitBounds(L.latLngBounds(Object.values(R.stages).flatMap(s=>[s.points.start,s.points.finish])).pad(.08));
   map.attributionControl.setPrefix(false).addAttribution("Roads © OpenStreetMap contributors");
-  drawBackground();
+  setBase(baseMode);
+  map.on("click",e=>{if(rb.on){rbAdd([e.latlng.lat,e.latlng.lng]);setTimeout(()=>map.closePopup(),0);}});
+  map.on("locationfound",locFound);map.on("locationerror",locErr);
   liaLayer=L.layerGroup().addTo(map);
   R.liaisons.forEach(l=>{L.polyline(dec(l.line),{color:css('--liaison'),weight:3,opacity:.85,dashArray:l.verified?null:"6 6"}).bindPopup(()=>`<b>${t("Road section","Normal etap")} ${esc(l.code)}</b><br>${t("Official","Resmi")} ${fmt(l.official)} km${l.verified?"":t(" (line approximate: follow the road book)"," (çizgi yaklaşık: road book'a uy)")}`).addTo(liaLayer);});
   L.polyline(dec(R.recce14.line),{color:"#a040ff",weight:3,opacity:.9,dashArray:"2 7"}).bindPopup(()=>`<b>${t("Recce only: SS14 return loop","Sadece keşif: SS14 dönüş turu")}</b><br>${t("About","Yaklaşık")} ${R.recce14.km.toFixed(1)} km. D25, Le Muy, DN7, Vidauban, D48, D72.`).addTo(liaLayer);
@@ -467,11 +476,108 @@ function shkLines(grp){
 }
 function drawBackground(){
   if(bgLayer)map.removeLayer(bgLayer);
+  if(baseMode!=="plain"){bgLayer=null;return;}
   bgLayer=L.layerGroup();
   const st={3:[css('--road3'),2.2],2:[css('--road'),1.2],1:[css('--road2'),.9]};
   R.background.forEach(([c,a])=>L.polyline(dec(a),{color:st[c][0],weight:st[c][1],opacity:.9,interactive:false}).addTo(bgLayer));
   bgLayer.addTo(map);bgLayer.eachLayer(l=>l.bringToBack&&l.bringToBack());
 }
+
+/* ---------- base map, route builder, my location ---------- */
+let baseMode="street",tileLayer=null,locOn=false,locLayer=null,locFirst=false,mapMsg="";
+try{baseMode=localStorage.getItem("base")||"street"}catch(e){}
+const rb={on:false,pts:[],markers:[],line:null,geom:null,state:"idle",km:0,min:0,seq:0,url:null};
+function setBase(m){
+  baseMode=m;try{localStorage.setItem("base",m)}catch(e){}
+  if(!map)return;
+  if(tileLayer){map.removeLayer(tileLayer);tileLayer=null;}
+  if(m==="street")tileLayer=L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap"});
+  if(m==="sat")tileLayer=L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",{maxZoom:19,attribution:"Imagery © Esri"});
+  if(tileLayer)tileLayer.addTo(map);
+  drawBackground();mapTools();
+}
+function mapTools(){
+  const el=document.getElementById("mapTools");if(!el)return;
+  const b=(id,lab,on)=>`<button type="button" class="chip" data-a="${id}" aria-pressed="${on}">${lab}</button>`;
+  el.innerHTML=`<span class="small">${t("Map","Harita")}</span>`+b("street",t("Street","Sokak"),baseMode==="street")+b("sat",t("Satellite","Uydu"),baseMode==="sat")+b("plain",t("Plain","Sade"),baseMode==="plain")+`<span style="flex:1"></span>`+b("rb",t("Build a route","Rota çiz"),rb.on)+b("loc",t("My location","Konumum"),locOn);
+  el.querySelectorAll("button").forEach(x=>x.onclick=()=>{const a=x.dataset.a;
+    if(a==="rb"){rb.on=!rb.on;document.getElementById("map").style.cursor=rb.on?"crosshair":"";mapTools();rbRender();}
+    else if(a==="loc")locToggle();else setBase(a);});
+  document.getElementById("mapMsg").textContent=mapMsg;
+}
+function rbIcon(i){return L.divIcon({className:"",iconSize:[24,24],iconAnchor:[12,12],html:`<div class="rbnum">${i+1}</div>`});}
+function rbAdd(ll){
+  if(!map)return;
+  const m=L.marker(ll,{icon:rbIcon(rb.pts.length),draggable:true}).addTo(map);
+  m.on("dragend",()=>{const i=rb.markers.indexOf(m),p=m.getLatLng();rb.pts[i]=[p.lat,p.lng];rbCalc();});
+  rb.pts.push([ll[0],ll[1]]);rb.markers.push(m);rbCalc();
+}
+function rbUndo(){if(!rb.pts.length)return;rb.pts.pop();map.removeLayer(rb.markers.pop());rbCalc();}
+function rbClear(){rb.markers.forEach(m=>map.removeLayer(m));rb.pts=[];rb.markers=[];rbCalc();}
+async function rbCalc(){
+  const my=++rb.seq;
+  if(rb.line){map.removeLayer(rb.line);rb.line=null;}
+  rb.geom=null;
+  if(rb.pts.length<2){rb.state="idle";rbRender();return;}
+  rb.state="loading";rbRender();
+  try{
+    const c=rb.pts.map(p=>p[1].toFixed(6)+","+p[0].toFixed(6)).join(";");
+    const r=await fetch(`https://router.project-osrm.org/route/v1/driving/${c}?overview=full&geometries=geojson`);
+    const j=await r.json();if(my!==rb.seq)return;
+    if(j.code!=="Ok")throw new Error("route");
+    rb.geom=j.routes[0].geometry.coordinates.map(q=>[q[1],q[0]]);rb.km=j.routes[0].distance/1000;rb.min=j.routes[0].duration/60;rb.state="ok";
+  }catch(e){
+    if(my!==rb.seq)return;
+    rb.geom=rb.pts.slice();rb.km=rb.pts.slice(1).reduce((s,p,i)=>s+map.distance(rb.pts[i],p),0)/1000;rb.min=0;rb.state="fail";
+  }
+  rb.line=L.layerGroup([L.polyline(rb.geom,{color:"#fff",weight:8,opacity:.9,interactive:false}),L.polyline(rb.geom,{color:"#e6007a",weight:4,opacity:1,dashArray:rb.state==="fail"?"6 6":null,interactive:false})]).addTo(map);
+  rbRender();
+}
+function rbRender(){
+  const el=document.getElementById("rbPanel");if(!el)return;
+  if(!rb.on&&!rb.pts.length){el.hidden=true;return;}
+  el.hidden=false;
+  const n=rb.pts.length,opt=[];
+  const V=id=>R.venues.find(v=>v.id===id);
+  [["SRV",t("Service park","Servis alanı")],["PF",t("Parc fermé","Kapalı park")],["CIN",t("Admin checks / final regroup","İdari kontrol / final regrup")],["REG",t("Regroup Pignans","Regrup Pignans")]].forEach(([id,nm])=>opt.push([V(id).ll,nm]));
+  ORDER.forEach(k=>{const s=R.stages[k],lb=label(k);if(k!=="SHK")opt.push([s.points.tc,lb+" TC"]);opt.push([s.points.start,lb+" start"]);opt.push([s.points.stop,lb+" stop"]);});
+  let sum="";
+  if(n===0)sum=t("No points yet.","Henüz nokta yok.");
+  else if(n===1)sum=t("1 point. Add the next one.","1 nokta. Sıradakini ekle.");
+  else if(rb.state==="loading")sum=t("Calculating…","Hesaplanıyor…");
+  else if(rb.state==="ok")sum=`${n} ${t("points","nokta")} · <b>${rb.km.toFixed(1)} km</b> · ${t("about","yaklaşık")} ${Math.round(rb.min)} ${t("min","dk")}`;
+  else sum=`${n} ${t("points","nokta")} · ${rb.km.toFixed(1)} km ${t("in a straight line. The routing service did not answer, so the road could not be drawn.","kuş uçuşu. Rota servisi cevap vermedi, yol çizilemedi.")}`;
+  let links="";
+  if(n>=2){
+    const mid=rb.pts.slice(1,-1),step=Math.max(1,Math.ceil(mid.length/9)),wp=mid.filter((p,i)=>i%step===0).slice(0,9);
+    const g=`https://www.google.com/maps/dir/?api=1&origin=${rb.pts[0].map(x=>x.toFixed(6)).join(",")}&destination=${rb.pts[n-1].map(x=>x.toFixed(6)).join(",")}${wp.length?"&waypoints="+encodeURIComponent(wp.map(p=>p.map(x=>x.toFixed(6)).join(",")).join("|")):""}&travelmode=driving`;
+    if(rb.url){URL.revokeObjectURL(rb.url);rb.url=null;}
+    let gpx="";
+    if(rb.geom&&rb.state==="ok"){rb.url=URL.createObjectURL(new Blob([`<?xml version="1.0" encoding="UTF-8"?><gpx version="1.1" creator="rally-pack" xmlns="http://www.topografix.com/GPX/1/1"><trk><name>My route</name><trkseg>${rb.geom.map(p=>`<trkpt lat="${p[0].toFixed(6)}" lon="${p[1].toFixed(6)}"/>`).join("")}</trkseg></trk></gpx>`],{type:"application/gpx+xml"}));
+      gpx=` · <a href="${rb.url}" download="my-route.gpx">${t("Save as GPX (opens in MAPS.ME, OsmAnd)","GPX olarak kaydet (MAPS.ME, OsmAnd açar)")}</a>`;}
+    links=`<p><a href="${g}" target="_blank" rel="noopener">${t("Open in Google Maps","Google Maps'te aç")}</a>${gpx}${mid.length>9?`<br><span class="small">${t("Google Maps takes at most 9 points in between; some of yours are skipped there.","Google Maps arada en fazla 9 nokta alıyor; seninkilerin bir kısmı orada atlanır.")}</span>`:""}</p>`;
+  }
+  el.innerHTML=`<h3>${t("Route builder","Rota çizici")}</h3>
+    <p class="small">${rb.on?t("Tap the map to add points in order. The road between them is calculated for you. Drag a numbered point to move it.","Noktaları sırayla eklemek için haritaya dokun. Aradaki yol senin için hesaplanır. Numaralı noktayı sürükleyerek taşıyabilirsin."):t("Route building is off. Turn on \"Build a route\" to add more points.","Rota çizme kapalı. Nokta eklemek için \"Rota çiz\"i aç.")}</p>
+    <div class="rbrow"><select id="rbAddSel" aria-label="${t("Add a rally point","Ralli noktası ekle")}"><option value="">${t("Add a rally point…","Ralli noktası ekle…")}</option>${opt.map(([ll,nm])=>`<option value="${ll[0]},${ll[1]}">${esc(nm)}</option>`).join("")}</select><button type="button" id="rbUndoBtn" ${n?"":"disabled"}>${t("Undo last","Sonuncuyu sil")}</button><button type="button" id="rbClearBtn" ${n?"":"disabled"}>${t("Clear","Temizle")}</button></div>
+    <div class="rbsum mono">${sum}</div>${links}
+    <p class="small">${t("An ordinary road route from a public routing service on OpenStreetMap data. It is not the official road book route and needs an internet connection.","OpenStreetMap verisiyle çalışan açık bir rota servisinden gelen normal yol rotası. Resmi road book rotası değildir ve internet bağlantısı ister.")}</p>`;
+  document.getElementById("rbAddSel").onchange=e=>{if(e.target.value){rbAdd(e.target.value.split(",").map(Number));}};
+  document.getElementById("rbUndoBtn").onclick=rbUndo;document.getElementById("rbClearBtn").onclick=rbClear;
+}
+function locToggle(){
+  if(!map)return;locOn=!locOn;mapMsg="";
+  if(locOn){locFirst=true;map.locate({watch:true,enableHighAccuracy:true,maximumAge:5000});}
+  else{map.stopLocate();if(locLayer){map.removeLayer(locLayer);locLayer=null;}}
+  mapTools();
+}
+function locFound(e){
+  if(!locOn)return;
+  if(locLayer)map.removeLayer(locLayer);
+  locLayer=L.layerGroup([L.circle(e.latlng,{radius:e.accuracy,color:"#1a73e8",weight:1,fillOpacity:.12,interactive:false}),L.circleMarker(e.latlng,{radius:7,color:"#fff",weight:2,fillColor:"#1a73e8",fillOpacity:1,interactive:false})]).addTo(map);
+  if(locFirst){locFirst=false;map.setView(e.latlng,Math.max(map.getZoom(),14));}
+}
+function locErr(){locOn=false;map.stopLocate();mapMsg=t("Your location could not be read. Allow location access for this page in the browser and try again.","Konumun okunamadı. Tarayıcıda bu sayfa için konum iznini verip tekrar dene.");mapTools();}
 
 /* ---------- stage sheet ---------- */
 function lightAt(tm){const [h,m]=tm.split(":").map(Number),x=h*60+m;return x<17*60+3-25?["day",t("daylight","aydınlık")]:x<17*60+33?["dusk",t("sunset","gün batımı")]:["dark",t("dark","karanlık")];}
@@ -660,12 +766,12 @@ async function docs(){
 const TERMS=[["Épreuve spéciale (ES)","Special stage (SS)","Özel etap (ÖE)"],["Contrôle horaire (CH)","Time control (TC)","Zaman kontrol (ZK)"],["Départ","Start","Start"],["Arrivée lancée","Flying finish","Uçan finiş"],["Point stop","Stop control","Stop noktası"],["Liaison","Road section","Normal etap"],["Carnet de bord / de contrôle","Time card","Zaman karnesi"],["Carnet d'itinéraire","Road book","Road book (yol kitabı)"],["Temps idéal (TI)","Target time","Hedef süre (ideal zaman)"],["Parc d'assistance","Service park","Servis alanı"],["Regroupement","Regroup","Regrup (toplanma)"],["Reclassement","Final regroup (re-ordering)","Final regrup"],["Parc fermé","Parc fermé","Kapalı park"],["Reconnaissances","Recce","Keşif"],["Ouvreur","Opening car / notes crew","Önden giden araç"],["Directeur de course","Clerk of the course","Yarış direktörü"],["Commissaires sportifs","Stewards","Komiserler"],["Vérifications techniques","Scrutineering","Teknik kontrol"],["Zone public (ZP)","Spectator zone","Seyirci bölgesi"],["PK","Kilometre point","Kilometre noktası"],["Corde protégée","Protected corner (stakes)","Korunan viraj içi (kazık)"]];
 function terms(){document.querySelector("#terms-t tbody").innerHTML=TERMS.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join("")}</tr>`).join("");}
 
-function renderAll(){applyStatic();liveRender();checkBox();diagram();chips();select(sel||"ALL");route();timecard();recce();docs();}
+function renderAll(){applyStatic();mapTools();rbRender();liveRender();checkBox();diagram();chips();select(sel||"ALL");route();timecard();recce();docs();}
 const btn=document.getElementById("langBtn");
 if(btn)btn.addEventListener("click",()=>{LANG=LANG==="tr"?"en":"tr";try{localStorage.setItem("lang",LANG)}catch(e){}if(map)map.closePopup();renderAll();});
 initMap();terms();renderAll();
 document.getElementById("liveBtn").addEventListener("click",liveCheck);liveCheck();setInterval(()=>{if(!document.hidden)liveCheck();},180000);
-matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{diagram();if(map)drawBackground();select(sel);});
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{diagram();if(map&&baseMode==="plain")drawBackground();select(sel);});
 })();
 </script>
 </body></html>
