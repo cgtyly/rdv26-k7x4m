@@ -116,6 +116,16 @@ footer{padding-block:24px;color:var(--muted);font-size:12.5px;border-top:1px sol
 .cols3 .card.ok{border-top-color:var(--start)}.cols3 .card.est{border-top-color:var(--tc)}.cols3 .card.chk{border-top-color:var(--stop)}
 .cols3 li{margin-bottom:6px}
 @media (max-width:900px){.cols3{grid-template-columns:1fr}}
+.livebar{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.livebtn{font:700 14px var(--f-body);padding:9px 16px;border:0;border-radius:4px;background:var(--tc);color:#141a22;cursor:pointer}
+.livebtn:disabled{opacity:.6;cursor:wait}
+.livesum{margin-top:12px;padding:10px 12px;border-left:4px solid var(--start);background:var(--surface);border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.livesum.chg{border-left-color:var(--stop)}.livesum.off{border-left-color:var(--tc)}
+.livegrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-top:10px}
+.livegrid .card ul{padding-left:16px}.livegrid .card li{margin-bottom:5px;overflow-wrap:anywhere}
+.badge{font:700 10px/1 var(--f-body);letter-spacing:.06em;padding:3px 5px;border-radius:3px;background:var(--stop);color:#fff;margin-right:5px}
+.badge.ok{background:var(--chip);color:var(--muted)}
+tr.me td{background:color-mix(in srgb,var(--tc) 30%,transparent);font-weight:600}
 /* mobile-fix */
 .tablebox a{white-space:nowrap}
 @media (max-width:900px){.diagram svg{min-width:1000px}.tablebox table{min-width:660px}.sheet .tablebox table{min-width:430px}.sheet{padding:12px}nav a{padding:7px 7px}}
@@ -124,7 +134,7 @@ footer{padding-block:24px;color:var(--muted);font-size:12.5px;border-top:1px sol
 
 <header class="bar"><div class="wrap">
   <div class="brand">Rallye du Var <b>2026</b> · Modern</div>
-  <nav aria-label="Sections"><a href="#check">Reliability</a><a href="#overlap">Stage overlap</a><a href="#stages">Map and stages</a><a href="#route">Route</a><a href="#timecard">Time card</a><a href="#recce">Recce</a><a href="#docs">Documents</a><a href="#terms">Terms</a></nav>
+  <nav aria-label="Sections"><a href="#live">Live</a><a href="#check">Reliability</a><a href="#overlap">Stage overlap</a><a href="#stages">Map and stages</a><a href="#route">Route</a><a href="#timecard">Time card</a><a href="#recce">Recce</a><a href="#docs">Documents</a><a href="#terms">Terms</a></nav>
   <button id="langBtn" type="button" style="margin-left:auto;font:700 13px var(--f-body);padding:6px 12px;border:1px solid currentColor;background:transparent;color:inherit;border-radius:4px;cursor:pointer">TR</button>
 </div></header>
 
@@ -155,6 +165,14 @@ footer{padding-block:24px;color:var(--muted);font-size:12.5px;border-top:1px sol
       </ol>
     </div>
   </div>
+
+  <section id="live" aria-labelledby="lv-h">
+    <div class="eyebrow">Bulletins and changes, straight from var-rallye.fr</div>
+    <h2 id="lv-h">Official site, live</h2>
+    <p class="lede">This box reads the organiser's Moderne pages directly and compares them with what this pack was built from. New bulletins, a new time schedule, the entry list or the road book show up here the moment the organiser publishes them.</p>
+    <div class="livebar"><button type="button" id="liveBtn" class="livebtn">Check now</button><span id="liveStatus" class="small" aria-live="polite"></span></div>
+    <div id="liveBox"></div>
+  </section>
 
   <section id="check" aria-labelledby="ck-h">
     <div class="eyebrow">What is confirmed and what is not</div>
@@ -262,7 +280,7 @@ const dt=s=>LANG==="tr"?s.replace(/^(\w+) (\d+) (\w+)/,(m,a,b,c)=>`${b} ${DTR[c]
 
 /* ---------- static text (Turkish) ---------- */
 const STATIC=[
-["nav a[href='#check']","Güvenilirlik"],["#check .eyebrow","Ne doğrulandı, ne doğrulanmadı"],["#ck-h","Buna ne kadar güvenilir"],["#check .lede","19 Kasım 2026'da organizasyonun yayınladığı dokümanlardan hazırlandı. Road book'un, zaman karnesinin ve görevlilerin talimatlarının yerini tutmaz. Aşağıda her bilginin nereden geldiği yazıyor."],["nav a[href='#overlap']","Etap çakışması"],["nav a[href='#stages']","Harita ve etaplar"],["nav a[href='#route']","Güzergah"],["nav a[href='#timecard']","Zaman karnesi"],["nav a[href='#recce']","Keşif"],["nav a[href='#docs']","Dokümanlar"],["nav a[href='#terms']","Terimler"],
+["nav a[href='#live']","Canlı"],["#live .eyebrow","Bültenler ve değişiklikler, doğrudan var-rallye.fr'den"],["#lv-h","Resmi site, canlı"],["#live .lede","Bu kutu organizasyonun Moderne sayfalarını doğrudan okuyup bu paketin hazırlandığı haliyle karşılaştırır. Yeni bülten, yeni zaman çizelgesi, kayıt listesi ya da road book, organizasyon yayınladığı anda burada görünür."],["nav a[href='#check']","Güvenilirlik"],["#check .eyebrow","Ne doğrulandı, ne doğrulanmadı"],["#ck-h","Buna ne kadar güvenilir"],["#check .lede","19 Kasım 2026'da organizasyonun yayınladığı dokümanlardan hazırlandı. Road book'un, zaman karnesinin ve görevlilerin talimatlarının yerini tutmaz. Aşağıda her bilginin nereden geldiği yazıyor."],["nav a[href='#overlap']","Etap çakışması"],["nav a[href='#stages']","Harita ve etaplar"],["nav a[href='#route']","Güzergah"],["nav a[href='#timecard']","Zaman karnesi"],["nav a[href='#recce']","Keşif"],["nav a[href='#docs']","Dokümanlar"],["nav a[href='#terms']","Terimler"],
 [".hero .eyebrow","72. Rallye du Var · Fransa Ralli Şampiyonası finali · Sainte-Maxime"],[".hero h1","10 yolda 14 etap"],
 [".hero p","Organizasyonun dokümanlarından (var-rallye.fr, Moderne) hazırlanan ekip çalışma paketi. Her özel etap gerçek yola oturtuldu, organizasyonun kendi GPS noktaları ve kilometre işaretleriyle doğrulandı. Birkaç etap aynı yolu paylaşıyor: aşağıdaki şema tam olarak nerede olduğunu gösteriyor. Kısaltmalar: SS = özel etap (Fransız tabelalarında ES), TC = zaman kontrol (Fransızca CH)."],
 [".figs div:nth-child(1) span","özel etap"],[".figs div:nth-child(2) span","km özel etap"],[".figs div:nth-child(3) span","km toplam"],[".figs div:nth-child(4) b","27 - 29"],[".figs div:nth-child(4) span","Kasım, 3 gün"],
@@ -327,6 +345,67 @@ function checkBox(){
     t("<b>Totals:</b> the regulations say 624.92 km and 191.15 km of stages; the timing V17 says 622.92 and 191.16. This site uses the timing.","<b>Toplamlar:</b> yönetmelik 624,92 km ve 191,15 km etap diyor; çizelge V17 622,92 ve 191,16. Bu site çizelgeyi kullanıyor."),
     t("<b>Not published yet:</b> entry list (due Friday 20 November, 12:00), start order, road book, the real time card. Enter your own minutes in the time card.","<b>Henüz yayınlanmadı:</b> kayıt listesi (20 Kasım Cuma 12:00'de bekleniyor), start sırası, road book, gerçek zaman karnesi. Zaman karnesine kendi dakikanı gir."),
     t("<b>Translations:</b> the French original prevails.","<b>Çeviriler:</b> şüphede Fransızca orijinal geçerlidir.")]);
+}
+
+/* ---------- live from the official site ---------- */
+const LIVE_IDS=[1228,701,705,1501,762,696,694,691];
+const LIVE_NAME={1228:["Bulletins","Bültenler"],701:["Itinerary and time schedule","Güzergah ve zaman çizelgesi"],705:["Entry list","Kayıt listesi"],1501:["Road book","Road book"],762:["Maps and recce","Haritalar ve keşif"],696:["Regulations","Yönetmelik"],694:["Forms","Formlar"],691:["Information","Bilgiler"]};
+const LIVE_MOD={1501:"2026-08-25T08:41:27",1228:"2026-11-13T16:16:20",762:"2026-11-17T16:59:53",705:"2022-05-28T08:19:49",701:"2026-10-22T20:34:12",696:"2026-09-21T21:07:51",694:"2026-10-20T15:23:46",691:"2026-11-16T16:03:01"};
+const LIVE_BASE={"var26_additif1_presentation_bpa.pdf":"EN_Bulletin_No1_2026-11-12.pdf","Timing-Var-2026-MOD-V17-20261022.pdf":"EN_Itinerary_Time_Schedule_V17.pdf","2026-Carte-Generale-Etape-1-2-3-Moderne_compressed.pdf":"EN_General_Map_Legs_1_2_3.pdf","horaires-des-reconnaissances.pdf":"EN_Recce_Times.pdf","Plan-recos-Var-P1-2-20261113.pdf":"EN_Recce_Plan_P1_of_2.pdf","Plan-recos-Var-P2-2-20261113.pdf":"EN_Recce_Plan_P2_of_2.pdf","Reglement-72-eme-Rallye-du-Var-Moderne-2026.pdf":"EN_Supplementary_Regulations_2026.pdf","2026-Demande-Engagement-Moderne.2026.pdf":"EN_Entry_Form_Modern_2026.pdf","Inscription-Ouvreur.2026-moderne.pdf":"EN_Opening_Car_Request_2026.pdf","Inscription-Shakedown.2026-moderne.pdf":"EN_Shakedown_Registration_2026.pdf","Reconnaissances.2026-moderne.pdf":"EN_Reconnaissance_Form_2026.pdf","2023-3-Demande-Assistance.MODERNE.2026-1.pdf":"EN_Special_Service_Request_2026.pdf","FICHE_DECLARATION_DE_CARBURANT_v2_2026-1.pdf":"EN_Fuel_Declaration_Form_2026.pdf","Notice-dinstallation-du-Tracker-Interactif-CFR-et-Finale-2025-FFSA-V1.pdf":"EN_Tracker_Installation_Guide.pdf","Notice-dutilisation-du-Tracker-Interactif-CFR-Finale-2025-V1.pdf":"EN_Tracker_User_Guide.pdf"};
+const LIVE_COUNT={1228:1,701:1,705:0,1501:0,762:4,696:1,694:6,691:2};
+let liveData=null,liveMeta=null,liveBusy=false;
+const clock=d=>d.toLocaleTimeString(LANG==="tr"?"tr-TR":"en-GB");
+const stamp=iso=>new Date(iso+(iso.endsWith("Z")?"":"Z")).toLocaleString(LANG==="tr"?"tr-TR":"en-GB",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"});
+function liveParse(pages){
+  return LIVE_IDS.map(id=>{const p=pages.find(x=>x.id===id);if(!p)return {id,missing:true};
+    const doc=new DOMParser().parseFromString(p.content.rendered||"","text/html");
+    const links=[...doc.querySelectorAll("a[href]")].map(a=>({href:a.getAttribute("href"),text:(a.textContent||"").trim()})).filter(l=>/^https:\/\/var-rallye\.fr\/wp-content\/uploads\/|\.(pdf|xlsx?|docx?|zip|kmz|kml|gpx)(\?|$)/i.test(l.href)&&/^https?:\/\//i.test(l.href));
+    const rows=[...doc.querySelectorAll("table tbody tr")].map(tr=>[...tr.children].map(c=>(c.textContent||"").trim())).filter(r=>r.some(c=>c));
+    return {id,mod:p.modified_gmt,links:links.map(l=>({...l,file:decodeURIComponent(l.href.split("/").pop().split("?")[0])})),rows};});
+}
+function liveRender(){
+  const box=document.getElementById("liveBox"),st=document.getElementById("liveStatus"),btn=document.getElementById("liveBtn");
+  btn.textContent=t("Check now","Şimdi kontrol et");
+  if(!liveMeta){st.textContent="";box.innerHTML="";return;}
+  if(liveMeta.error&&!liveData){st.textContent=t("Could not reach the official site and no saved copy is available. Check your connection and try again.","Resmi siteye ulaşılamadı ve kayıtlı kopya da yok. Bağlantını kontrol edip tekrar dene.");box.innerHTML="";return;}
+  st.textContent=liveMeta.live
+    ?t(`Read directly from var-rallye.fr at ${clock(liveMeta.at)} (answer took ${liveMeta.ms/1000} s). No other delay: this is what the official site shows right now. Rechecked every 3 minutes while this page is open.`,`Saat ${clock(liveMeta.at)} itibarıyla doğrudan var-rallye.fr'den okundu (cevap ${String(liveMeta.ms/1000).replace(".",",")} sn sürdü). Başka gecikme yok: resmi sitede şu an görünen bu. Sayfa açıkken 3 dakikada bir yeniden bakılır.`)
+    :t(`The official site did not answer. Showing our saved copy from ${stamp(liveMeta.saved)}. Anything published after that time is missing here: open var-rallye.fr yourself.`,`Resmi site cevap vermedi. ${stamp(liveMeta.saved)} tarihli kayıtlı kopyamız gösteriliyor. O saatten sonra yayınlananlar burada yok: var-rallye.fr'yi kendin aç.`);
+  const changes=[];
+  const cards=liveData.map(p=>{
+    const nm=t(LIVE_NAME[p.id][0],LIVE_NAME[p.id][1]);
+    if(p.missing)return `<div class="card"><h3>${nm}</h3><p class="small">${t("Page not found on the official site.","Sayfa resmi sitede bulunamadı.")}</p></div>`;
+    const fresh=p.links.filter(l=>!LIVE_BASE[l.file]);
+    const edited=p.mod!==LIVE_MOD[p.id];
+    fresh.forEach(l=>changes.push(`${nm}: ${l.text||l.file}`));
+    if(p.id===705&&p.rows.length)changes.push(t(`Entry list published: ${p.rows.length} crews`,`Kayıt listesi yayınlandı: ${p.rows.length} ekip`));
+    if(p.links.length<LIVE_COUNT[p.id])changes.push(t(`${nm}: a document was removed or replaced`,`${nm}: bir doküman kaldırılmış ya da değiştirilmiş`));
+    const li=p.links.map(l=>LIVE_BASE[l.file]
+      ?`<li><span class="badge ok">${t("IN PACK","PAKETTE")}</span>${esc(l.text||l.file)}<br><a href="docs/${LIVE_BASE[l.file]}" download>${t("English version","İngilizce sürüm")}</a> · <a href="${esc(l.href)}" target="_blank" rel="noopener">${t("French original","Fransızca orijinal")}</a></li>`
+      :`<li><span class="badge">${t("NEW","YENİ")}</span><b>${esc(l.text||l.file)}</b><br><a href="${esc(l.href)}" target="_blank" rel="noopener">${t("Open the French original","Fransızca orijinali aç")}</a> · ${t("not translated yet","henüz çevrilmedi")}<br><span class="small">${esc(l.file)}</span></li>`).join("");
+    let extra="";
+    if(p.id===705)extra=p.rows.length?`<div class="tablebox" style="max-height:340px;overflow:auto"><table><tbody>${p.rows.map(r=>`<tr class="${/ERTU[GĞ]RUL/i.test(r.join(" "))?"me":""}">${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:`<p class="small">${t("Still empty. Due Friday 20 November, 12:00.","Hâlâ boş. 20 Kasım Cuma 12:00'de bekleniyor.")}</p>`;
+    if(p.id===1501&&!p.links.length)extra=`<p class="small">${t("No file online. Handed out at the admin checks.","İnternette dosya yok. İdari kontrolde elden veriliyor.")}</p>`;
+    if(p.id===701&&fresh.length)extra=`<p class="note warn">${t("The time schedule file has changed. The time card on this page is still built from V17: compare before you use it.","Zaman çizelgesi dosyası değişmiş. Bu sayfadaki zaman karnesi hâlâ V17'den: kullanmadan önce karşılaştır.")}</p>`;
+    return `<div class="card"><h3>${nm}</h3><p class="small">${t("Page last edited","Sayfa son düzenleme")}: ${stamp(p.mod)}${edited&&!fresh.length?" · "+t("edited since this pack was built, same documents","paket hazırlandıktan sonra düzenlenmiş, dokümanlar aynı"):""}</p>${li?`<ul>${li}</ul>`:""}${extra}</div>`;}).join("");
+  const sum=changes.length
+    ?`<div class="livesum chg"><b>${t("Changed since this pack was built (19 November):","Paket hazırlandığından (19 Kasım) beri değişenler:")}</b><ul>${changes.map(c=>`<li>${esc(c)}</li>`).join("")}</ul><span class="small">${t("New documents are linked in French below. They are not in the English pack until someone adds them.","Yeni dokümanlar aşağıda Fransızca olarak bağlı. Biri ekleyene kadar İngilizce pakette yoklar.")}</span></div>`
+    :`<div class="livesum ${liveMeta.live?"":"off"}"><b>${t("No new documents on the official Moderne pages since this pack was built (19 November).","Paket hazırlandığından (19 Kasım) beri resmi Moderne sayfalarında yeni doküman yok.")}</b></div>`;
+  box.innerHTML=sum+`<div class="livegrid">${cards}</div><p class="small">${t("Times are shown in your device's time zone. Only the Moderne competitor pages are watched; results and live timing are on pksoft.fr.","Saatler cihazının saat diliminde. Sadece Moderne yarışmacı sayfaları izleniyor; sonuçlar ve canlı zamanlar pksoft.fr'de.")}</p>`;
+}
+async function liveCheck(){
+  if(liveBusy)return;liveBusy=true;
+  const btn=document.getElementById("liveBtn"),st=document.getElementById("liveStatus");btn.disabled=true;st.textContent=t("Reading var-rallye.fr…","var-rallye.fr okunuyor…");
+  const t0=performance.now();
+  try{
+    const r=await fetch(`https://var-rallye.fr/wp-json/wp/v2/pages?include=${LIVE_IDS.join(",")}&per_page=20&_fields=id,slug,modified_gmt,content&_=${Date.now()}`,{cache:"no-store"});
+    if(!r.ok)throw new Error("http "+r.status);
+    liveData=liveParse(await r.json());liveMeta={live:true,at:new Date(),ms:Math.round((performance.now()-t0)/100)*100};
+  }catch(e){
+    try{const r=await fetch("live.json?_="+Date.now(),{cache:"no-store"});if(!r.ok)throw new Error("snap");const j=await r.json();liveData=liveParse(j.pages);liveMeta={live:false,saved:j.checked_at};}
+    catch(e2){liveMeta={error:true};}
+  }
+  liveBusy=false;btn.disabled=false;liveRender();
 }
 
 /* ---------- overlap diagram ---------- */
@@ -580,10 +659,11 @@ async function docs(){
 const TERMS=[["Épreuve spéciale (ES)","Special stage (SS)","Özel etap (ÖE)"],["Contrôle horaire (CH)","Time control (TC)","Zaman kontrol (ZK)"],["Départ","Start","Start"],["Arrivée lancée","Flying finish","Uçan finiş"],["Point stop","Stop control","Stop noktası"],["Liaison","Road section","Normal etap"],["Carnet de bord / de contrôle","Time card","Zaman karnesi"],["Carnet d'itinéraire","Road book","Road book (yol kitabı)"],["Temps idéal (TI)","Target time","Hedef süre (ideal zaman)"],["Parc d'assistance","Service park","Servis alanı"],["Regroupement","Regroup","Regrup (toplanma)"],["Reclassement","Final regroup (re-ordering)","Final regrup"],["Parc fermé","Parc fermé","Kapalı park"],["Reconnaissances","Recce","Keşif"],["Ouvreur","Opening car / notes crew","Önden giden araç"],["Directeur de course","Clerk of the course","Yarış direktörü"],["Commissaires sportifs","Stewards","Komiserler"],["Vérifications techniques","Scrutineering","Teknik kontrol"],["Zone public (ZP)","Spectator zone","Seyirci bölgesi"],["PK","Kilometre point","Kilometre noktası"],["Corde protégée","Protected corner (stakes)","Korunan viraj içi (kazık)"]];
 function terms(){document.querySelector("#terms-t tbody").innerHTML=TERMS.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join("")}</tr>`).join("");}
 
-function renderAll(){applyStatic();checkBox();diagram();chips();select(sel||"ALL");route();timecard();recce();docs();}
+function renderAll(){applyStatic();liveRender();checkBox();diagram();chips();select(sel||"ALL");route();timecard();recce();docs();}
 const btn=document.getElementById("langBtn");
 if(btn)btn.addEventListener("click",()=>{LANG=LANG==="tr"?"en":"tr";try{localStorage.setItem("lang",LANG)}catch(e){}if(map)map.closePopup();renderAll();});
 initMap();terms();renderAll();
+document.getElementById("liveBtn").addEventListener("click",liveCheck);liveCheck();setInterval(()=>{if(!document.hidden)liveCheck();},180000);
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{diagram();if(map)drawBackground();select(sel);});
 })();
 </script>
