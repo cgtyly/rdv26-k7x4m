@@ -108,6 +108,9 @@ footer{padding-block:24px;color:var(--muted);font-size:12.5px;border-top:1px sol
 .legend span{display:inline-flex;gap:6px;align-items:center}
 .dot{width:11px;height:11px;border-radius:50%;display:inline-block;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--ink)}
 @media (max-width:900px){.hero,.mapgrid,.cols{grid-template-columns:1fr}#map{height:430px}.figs{grid-template-columns:repeat(2,1fr)}.kv{grid-template-columns:repeat(2,1fr)}}
+.maplabel{display:inline-block;white-space:nowrap;font:600 11px/1.2 var(--f-body);background:var(--surface);color:var(--ink);border:1px solid var(--ink);padding:1px 5px;border-radius:3px;transform:translate(9px,-9px)}
+.maplabel.ss{background:var(--ink);color:var(--bg);font-family:var(--f-display);font-size:13px;letter-spacing:.03em}
+.maplabel:empty{display:none}
 /* mobile-fix */
 .tablebox a{white-space:nowrap}
 @media (max-width:900px){.diagram svg{min-width:1000px}.tablebox table{min-width:660px}.sheet .tablebox table{min-width:430px}.sheet{padding:12px}nav a{padding:7px 7px}}
@@ -157,7 +160,7 @@ footer{padding-block:24px;color:var(--muted);font-size:12.5px;border-top:1px sol
 
   <section id="stages" aria-labelledby="st-h">
     <div class="eyebrow">Map and stage sheets</div>
-    <h2 id="st-h">Pick a stage</h2>
+    <h2 id="st-h">Overview or one stage</h2>
     <div class="chips" id="chips" role="group" aria-label="Stages"></div>
     <div class="legend">
       <span><i class="dot" style="background:var(--tc)"></i>Time control (TC)</span>
@@ -262,7 +265,7 @@ const STATIC=[
 [".next li:nth-child(8) time","Paz 29 Kas"],[".next li:nth-child(8) span","07:00, SS12 - SS14. Finiş podyumu 11:59'dan itibaren"],
 ["#overlap .eyebrow","Önce bunu oku"],["#ov-h","Etaplar yolu nerede paylaşıyor"],
 ["#overlap .lede","39 km'lik SS9 yeni bir yol değil. SS5 (içinde SS1 de var), D39 üzerinde 1,3 km bağlantı, SS13'ün ilk 7,8 km'si ve SS6'nın tamamından oluşuyor. Organizasyonun seyirci noktaları her etapta aynı GPS konumunu ve birbirini tutan kilometreleri taşıyor; çakışmanın kanıtı bu. Aşağıdaki mesafeler SS9 kilometre ölçeğinde."],
-["#stages .eyebrow","Harita ve etap sayfaları"],["#st-h","Etap seç"],
+["#stages .eyebrow","Harita ve etap sayfaları"],["#st-h","Genel harita ya da tek etap"],
 ["#route .eyebrow","Nereden nereye"],["#rt-h","Güzergah: normal etaplar sırayla"],
 ["#route .lede","Bütün normal etaplar (liaison) koşu sırasıyla, resmi mesafe ve bu haritanın izlediği ana yollarla. \"Yaklaşık\" yazan satırlar organizasyonun genel haritasına uyuyor ama resmi mesafeyi tam tutmuyor (şehir içi, servis, regrup): oralarda road book'a uy."],
 ["#timecard .eyebrow","Güzergah ve zaman çizelgesi, V17"],["#tc-h","Zaman karnen"],
@@ -311,15 +314,17 @@ function diagram(){
 
 /* ---------- map ---------- */
 const VEN_TR={PF:"Kapalı park (start ve gece)",POD:"Podyum / seremonik start ve finiş",SRV:"Servis alanı (Modern)",CIN:"İdari kontrol, road book ve malzeme dağıtımı; final regrup (TC14A/14B)",REG:"Regrup Pignans (TC6A/6B, TC9A/9B), konum yaklaşık",COL:"TC2A Collobrières belediye binası",SHK:"Shakedown (Per 26 Kas, 10:00-17:00)",BOS:"Görevli karşılama",VR:"Villa Rose (yönetmelik s.3: yarış merkezi)"};
-let map,layers={},sel=null,bgLayer;
+let map,layers={},sel=null,bgLayer,liaLayer,ovGroup=null,ovDay=0;
+const DAYCOL={1:"#f59a00",2:"#2d7ff9",3:"#17b26a"};
 function initMap(){
   if(!window.L){document.getElementById("map").innerHTML='<p style="padding:16px">Map library did not load / Harita kütüphanesi yüklenemedi.</p>';return;}
   map=L.map("map",{preferCanvas:true,zoomSnap:.25,attributionControl:true});
   map.fitBounds(L.latLngBounds(Object.values(R.stages).flatMap(s=>[s.points.start,s.points.finish])).pad(.08));
   map.attributionControl.setPrefix(false).addAttribution("Roads © OpenStreetMap contributors");
   drawBackground();
-  R.liaisons.forEach(l=>{L.polyline(dec(l.line),{color:css('--liaison'),weight:3,opacity:.85,dashArray:l.verified?null:"6 6"}).bindPopup(()=>`<b>${t("Road section","Normal etap")} ${esc(l.code)}</b><br>${t("Official","Resmi")} ${fmt(l.official)} km${l.verified?"":t(" (line approximate: follow the road book)"," (çizgi yaklaşık: road book'a uy)")}`).addTo(map);});
-  L.polyline(dec(R.recce14.line),{color:"#a040ff",weight:3,opacity:.9,dashArray:"2 7"}).bindPopup(()=>`<b>${t("Recce only: SS14 return loop","Sadece keşif: SS14 dönüş turu")}</b><br>${t("About","Yaklaşık")} ${R.recce14.km.toFixed(1)} km. D25, Le Muy, DN7, Vidauban, D48, D72.`).addTo(map);
+  liaLayer=L.layerGroup().addTo(map);
+  R.liaisons.forEach(l=>{L.polyline(dec(l.line),{color:css('--liaison'),weight:3,opacity:.85,dashArray:l.verified?null:"6 6"}).bindPopup(()=>`<b>${t("Road section","Normal etap")} ${esc(l.code)}</b><br>${t("Official","Resmi")} ${fmt(l.official)} km${l.verified?"":t(" (line approximate: follow the road book)"," (çizgi yaklaşık: road book'a uy)")}`).addTo(liaLayer);});
+  L.polyline(dec(R.recce14.line),{color:"#a040ff",weight:3,opacity:.9,dashArray:"2 7"}).bindPopup(()=>`<b>${t("Recce only: SS14 return loop","Sadece keşif: SS14 dönüş turu")}</b><br>${t("About","Yaklaşık")} ${R.recce14.km.toFixed(1)} km. D25, Le Muy, DN7, Vidauban, D48, D72.`).addTo(liaLayer);
   ORDER.forEach(k=>{const s=R.stages[k],g=L.layerGroup();
     L.polyline(dec(s.approach),{color:COL[k],weight:2,opacity:.9}).addTo(g);
     L.polyline(dec(s.line),{color:COL[k],weight:5,opacity:.95}).on("click",()=>select(k)).addTo(g);
@@ -375,7 +380,46 @@ const extra=k=>({
    "TC3 / TC8 / TC10 zaman kontrolünün adı \"RD41, St Guillaume\": D41 üzerinde, bu start çizgisinin 50 m gerisi. Cuma günü buraya TC2A'dan (Collobrières belediye binası, 6,50 km, 15 dk) geliyorsun. Çizelge sadece SS10 için TC ile start arasını 0,30 km gösteriyor: road book'tan kontrol et."),
  ES2:t("After SS2 on Friday the next control is TC2A at Collobrières town hall, 4.65 km after the finish: an extra time control, no service or regroup. Its 35 min target time counts from the SS2 start.",
    "Cuma günü SS2'den sonraki kontrol, finişten 4,65 km sonra Collobrières belediye binasındaki TC2A: fazladan bir zaman kontrol, servis ya da regrup yok. 35 dk'lık hedef süresi SS2 startından sayılır.")}[k]);
+const VLAB={PF:["Parc fermé + Podium","Kapalı park + Podyum"],SRV:["Service park","Servis alanı"],CIN:["Admin checks + final regroup","İdari kontrol + final regrup"],REG:["Regroup","Regrup"],COL:["TC2A","TC2A"],SHK:["Shakedown","Shakedown"]};
+function overview(){
+  sel="ALL";
+  document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.k==="ALL"?"true":"false"));
+  const days=ovDay?[ovDay]:[1,2,3];
+  if(map){
+    if(ovGroup)map.removeLayer(ovGroup);
+    map.removeLayer(liaLayer);Object.values(layers).forEach(g=>map.removeLayer(g));
+    ovGroup=L.layerGroup();
+    const lw={1:7,2:4.5,3:2.2},sw={1:11,2:7,3:3.5};
+    const lab=(ll,txt,cls)=>L.marker(ll,{interactive:false,icon:L.divIcon({className:"",iconSize:null,html:`<div class="maplabel ${cls||""}">${esc(txt)}</div>`})}).addTo(ovGroup);
+    days.forEach(d=>R.liaisons.filter(l=>l.day===d).forEach(l=>L.polyline(dec(l.line),{color:DAYCOL[d],weight:ovDay?3.5:lw[d],opacity:.8,dashArray:l.verified?null:"6 6"}).bindPopup(()=>`<b>${t("Day","Gün")} ${d}: ${t("road section","normal etap")} ${esc(l.code)}</b><br>${t("Official","Resmi")} ${fmt(l.official)} km${l.verified?"":t(" (line approximate)"," (çizgi yaklaşık)")}`).addTo(ovGroup)));
+    ORDER.filter(k=>k!=="SHK").forEach(k=>{const s=R.stages[k],rs=s.runs.filter(r=>days.includes(r.day));if(!rs.length)return;
+      const ds=[...new Set(rs.map(r=>r.day))],line=dec(s.line);
+      L.polyline(line,{color:css('--ink'),weight:(ovDay?5:sw[ds[0]])+3,opacity:1}).addTo(ovGroup);
+      ds.forEach(d=>L.polyline(line,{color:DAYCOL[d],weight:ovDay?5:sw[d],opacity:1}).on("click",()=>select(k)).bindTooltip(()=>`${rs.map(r=>r.ss+" "+r.first).join(", ")} · ${s.name}`).addTo(ovGroup));
+      L.circleMarker(s.points.start,{radius:5,color:css('--ink'),weight:2,fillColor:css('--start'),fillOpacity:1}).bindPopup(()=>`<b>${rs.map(r=>r.ss).join("/")} start</b><br>${gm(s.points.start)}`).addTo(ovGroup);
+      L.circleMarker(s.points.stop,{radius:5,color:css('--ink'),weight:2,fillColor:css('--stop'),fillOpacity:1}).bindPopup(()=>`<b>${rs.map(r=>r.ss).join("/")} stop</b><br>${gm(s.points.stop)}`).addTo(ovGroup);
+      if(k!=="ES1"||!days.includes(2))lab(s.points.start,(k==="ES5"&&days.includes(1)&&!ovDay?"SS1/5/9":k==="ES9"&&!ovDay?"":rs.map(r=>r.ss).join("/")),"ss");});
+    R.venues.forEach(v=>{if(VLAB[v.id])lab(v.ll,t(VLAB[v.id][0],VLAB[v.id][1]));});
+    ovGroup.addTo(map);
+    map.fitBounds(L.latLngBounds(R.liaisons.flatMap(l=>{const a=dec(l.line);return [a[0],a[Math.floor(a.length/2)],a[a.length-1]];})),{paddingTopLeft:[12,12],paddingBottomRight:[150,12]});
+  }
+  const V=id=>R.venues.find(v=>v.id===id);
+  const place=(id,extraTxt)=>{const v=V(id);return `<b>${esc(t(VLAB[id][0],VLAB[id][1]))}</b><span>${esc(v.fr)}${extraTxt?" · "+extraTxt:""}<br>${gm(v.ll)}</span>`;};
+  const dayBlock=d=>{const D=R.days[d-1];return `<div class="note" style="border-left-color:${DAYCOL[d]}"><b>${t("Day","Gün")} ${d} · ${esc(dt(D.date))}</b> · ${D.totals.ss.toFixed(2)} km SS, ${D.totals.total.toFixed(2)} km ${t("total","toplam")}<br>${D.rows.filter(r=>r[2]==="SS").map(r=>`<button type="button" class="chip" style="margin:3px 3px 0 0" data-go="${R.ss_route[r[0]]}">${r[0]} ${r[7]}</button>`).join("")}</div>`;};
+  document.getElementById("sheet").innerHTML=`
+    <div class="title"><h3>${t("Whole rally","Genel harita")}</h3><span class="mono">622.92 km</span></div>
+    <p class="small">${t("Everything on one map. Zoom and drag to explore; tap a line or a pin for details. Each day has its own colour. Thick line with a dark edge: special stage. Thin line: road section (dashed: approximate). Where two days use the same road the colours are nested.","Her şey tek haritada. Yakınlaştırıp sürükleyerek gez; ayrıntı için çizgiye ya da pine dokun. Her günün rengi ayrı. Koyu kenarlı kalın çizgi: özel etap. İnce çizgi: normal etap (kesikli: yaklaşık). İki günün aynı yolu kullandığı yerde renkler iç içe görünür.")}</p>
+    <div class="chips" id="dayChips">${[0,1,2,3].map(d=>`<button type="button" class="chip" data-d="${d}" aria-pressed="${ovDay===d}">${d?`<i style="background:${DAYCOL[d]}"></i>${t("Day","Gün")} ${d}`:t("All days","Tüm günler")}</button>`).join("")}</div>
+    ${days.map(dayBlock).join("")}
+    <h3 style="margin-top:14px">${t("Where things are","Ne nerede")}</h3>
+    <div class="pts">${place("SRV",t("every service A to F; in and out are time controls","tüm servisler A-F; giriş ve çıkış zaman kontrol"))}${place("PF",t("start, both overnight halts and the finish","start, iki gece ve finiş"))}${place("CIN",t("road book, admin checks, scrutineering; TC14A/14B on Sunday","road book, idari kontrol, teknik kontrol; Pazar TC14A/14B"))}${place("REG",t("Saturday, twice; position approximate","Cumartesi, iki kez; konum yaklaşık"))}${place("COL",t("Friday, after SS2","Cuma, SS2'den sonra"))}${place("SHK",t("Thursday 26 Nov, 10:00 to 17:00","26 Kasım Perşembe, 10:00-17:00"))}</div>
+    <p class="small">${t("How you get to each stage, road by road: see the Route section below.","Her etaba hangi yoldan gidildiği: aşağıdaki Güzergah bölümünde.")}</p>`;
+  document.querySelectorAll("#dayChips .chip").forEach(b=>b.onclick=()=>{ovDay=+b.dataset.d;overview();});
+  document.querySelectorAll("#sheet [data-go]").forEach(b=>b.onclick=()=>select(b.dataset.go));
+}
 function select(k){
+  if(k==="ALL")return overview();
+  if(map&&ovGroup){map.removeLayer(ovGroup);ovGroup=null;liaLayer.addTo(map);Object.values(layers).forEach(g=>g.addTo(map));}
   sel=k;const s=R.stages[k];
   document.querySelectorAll(".chip").forEach(c=>c.setAttribute("aria-pressed",c.dataset.k===k?"true":"false"));
   if(map){Object.entries(layers).forEach(([kk,g])=>g.eachLayer(l=>l.setStyle&&l.setStyle({opacity:kk===k?1:.25})));
@@ -399,6 +443,7 @@ function select(k){
 }
 function chips(){
   const box=document.getElementById("chips");box.innerHTML="";
+  {const b=document.createElement("button");b.className="chip";b.dataset.k="ALL";b.type="button";b.setAttribute("aria-pressed","false");b.innerHTML=`<i style="background:linear-gradient(90deg,${DAYCOL[1]} 33%,${DAYCOL[2]} 33% 66%,${DAYCOL[3]} 66%)"></i>${t("Overview","Genel")}`;b.onclick=()=>select("ALL");box.appendChild(b);}
   ORDER.forEach(k=>{const b=document.createElement("button");b.className="chip";b.dataset.k=k;b.type="button";b.setAttribute("aria-pressed","false");
     b.innerHTML=`<i style="background:${COL[k]}"></i>${label(k)} ${esc(R.stages[k].name)}`;b.onclick=()=>select(k);box.appendChild(b);});
 }
@@ -484,7 +529,7 @@ async function docs(){
 const TERMS=[["Épreuve spéciale (ES)","Special stage (SS)","Özel etap (ÖE)"],["Contrôle horaire (CH)","Time control (TC)","Zaman kontrol (ZK)"],["Départ","Start","Start"],["Arrivée lancée","Flying finish","Uçan finiş"],["Point stop","Stop control","Stop noktası"],["Liaison","Road section","Normal etap"],["Carnet de bord / de contrôle","Time card","Zaman karnesi"],["Carnet d'itinéraire","Road book","Road book (yol kitabı)"],["Temps idéal (TI)","Target time","Hedef süre (ideal zaman)"],["Parc d'assistance","Service park","Servis alanı"],["Regroupement","Regroup","Regrup (toplanma)"],["Reclassement","Final regroup (re-ordering)","Final regrup"],["Parc fermé","Parc fermé","Kapalı park"],["Reconnaissances","Recce","Keşif"],["Ouvreur","Opening car / notes crew","Önden giden araç"],["Directeur de course","Clerk of the course","Yarış direktörü"],["Commissaires sportifs","Stewards","Komiserler"],["Vérifications techniques","Scrutineering","Teknik kontrol"],["Zone public (ZP)","Spectator zone","Seyirci bölgesi"],["PK","Kilometre point","Kilometre noktası"],["Corde protégée","Protected corner (stakes)","Korunan viraj içi (kazık)"]];
 function terms(){document.querySelector("#terms-t tbody").innerHTML=TERMS.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join("")}</tr>`).join("");}
 
-function renderAll(){applyStatic();diagram();chips();select(sel||"ES9");route();timecard();recce();docs();}
+function renderAll(){applyStatic();diagram();chips();select(sel||"ALL");route();timecard();recce();docs();}
 const btn=document.getElementById("langBtn");
 if(btn)btn.addEventListener("click",()=>{LANG=LANG==="tr"?"en":"tr";try{localStorage.setItem("lang",LANG)}catch(e){}if(map)map.closePopup();renderAll();});
 initMap();terms();renderAll();
