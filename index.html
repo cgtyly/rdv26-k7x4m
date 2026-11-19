@@ -111,6 +111,11 @@ footer{padding-block:24px;color:var(--muted);font-size:12.5px;border-top:1px sol
 .maplabel{display:inline-block;white-space:nowrap;font:600 11px/1.2 var(--f-body);background:var(--surface);color:var(--ink);border:1px solid var(--ink);padding:1px 5px;border-radius:3px;transform:translate(9px,-9px)}
 .maplabel.ss{background:var(--ink);color:var(--bg);font-family:var(--f-display);font-size:13px;letter-spacing:.03em}
 .maplabel:empty{display:none}
+.cols3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:12px}
+.cols3 .card{border-top:4px solid var(--line)}
+.cols3 .card.ok{border-top-color:var(--start)}.cols3 .card.est{border-top-color:var(--tc)}.cols3 .card.chk{border-top-color:var(--stop)}
+.cols3 li{margin-bottom:6px}
+@media (max-width:900px){.cols3{grid-template-columns:1fr}}
 /* mobile-fix */
 .tablebox a{white-space:nowrap}
 @media (max-width:900px){.diagram svg{min-width:1000px}.tablebox table{min-width:660px}.sheet .tablebox table{min-width:430px}.sheet{padding:12px}nav a{padding:7px 7px}}
@@ -119,7 +124,7 @@ footer{padding-block:24px;color:var(--muted);font-size:12.5px;border-top:1px sol
 
 <header class="bar"><div class="wrap">
   <div class="brand">Rallye du Var <b>2026</b> · Modern</div>
-  <nav aria-label="Sections"><a href="#overlap">Stage overlap</a><a href="#stages">Map and stages</a><a href="#route">Route</a><a href="#timecard">Time card</a><a href="#recce">Recce</a><a href="#docs">Documents</a><a href="#terms">Terms</a></nav>
+  <nav aria-label="Sections"><a href="#check">Reliability</a><a href="#overlap">Stage overlap</a><a href="#stages">Map and stages</a><a href="#route">Route</a><a href="#timecard">Time card</a><a href="#recce">Recce</a><a href="#docs">Documents</a><a href="#terms">Terms</a></nav>
   <button id="langBtn" type="button" style="margin-left:auto;font:700 13px var(--f-body);padding:6px 12px;border:1px solid currentColor;background:transparent;color:inherit;border-radius:4px;cursor:pointer">TR</button>
 </div></header>
 
@@ -150,6 +155,13 @@ footer{padding-block:24px;color:var(--muted);font-size:12.5px;border-top:1px sol
       </ol>
     </div>
   </div>
+
+  <section id="check" aria-labelledby="ck-h">
+    <div class="eyebrow">What is confirmed and what is not</div>
+    <h2 id="ck-h">How far to trust this</h2>
+    <p class="lede">Built on 19 November 2026 from the organiser's published documents. It does not replace the road book, the time card or the officials' instructions. Each item below says where it comes from.</p>
+    <div class="cols3" id="checkBox"></div>
+  </section>
 
   <section id="overlap" aria-labelledby="ov-h">
     <div class="eyebrow">Read this first</div>
@@ -250,7 +262,7 @@ const dt=s=>LANG==="tr"?s.replace(/^(\w+) (\d+) (\w+)/,(m,a,b,c)=>`${b} ${DTR[c]
 
 /* ---------- static text (Turkish) ---------- */
 const STATIC=[
-["nav a[href='#overlap']","Etap çakışması"],["nav a[href='#stages']","Harita ve etaplar"],["nav a[href='#route']","Güzergah"],["nav a[href='#timecard']","Zaman karnesi"],["nav a[href='#recce']","Keşif"],["nav a[href='#docs']","Dokümanlar"],["nav a[href='#terms']","Terimler"],
+["nav a[href='#check']","Güvenilirlik"],["#check .eyebrow","Ne doğrulandı, ne doğrulanmadı"],["#ck-h","Buna ne kadar güvenilir"],["#check .lede","19 Kasım 2026'da organizasyonun yayınladığı dokümanlardan hazırlandı. Road book'un, zaman karnesinin ve görevlilerin talimatlarının yerini tutmaz. Aşağıda her bilginin nereden geldiği yazıyor."],["nav a[href='#overlap']","Etap çakışması"],["nav a[href='#stages']","Harita ve etaplar"],["nav a[href='#route']","Güzergah"],["nav a[href='#timecard']","Zaman karnesi"],["nav a[href='#recce']","Keşif"],["nav a[href='#docs']","Dokümanlar"],["nav a[href='#terms']","Terimler"],
 [".hero .eyebrow","72. Rallye du Var · Fransa Ralli Şampiyonası finali · Sainte-Maxime"],[".hero h1","10 yolda 14 etap"],
 [".hero p","Organizasyonun dokümanlarından (var-rallye.fr, Moderne) hazırlanan ekip çalışma paketi. Her özel etap gerçek yola oturtuldu, organizasyonun kendi GPS noktaları ve kilometre işaretleriyle doğrulandı. Birkaç etap aynı yolu paylaşıyor: aşağıdaki şema tam olarak nerede olduğunu gösteriyor. Kısaltmalar: SS = özel etap (Fransız tabelalarında ES), TC = zaman kontrol (Fransızca CH)."],
 [".figs div:nth-child(1) span","özel etap"],[".figs div:nth-child(2) span","km özel etap"],[".figs div:nth-child(3) span","km toplam"],[".figs div:nth-child(4) b","27 - 29"],[".figs div:nth-child(4) span","Kasım, 3 gün"],
@@ -287,6 +299,34 @@ function applyStatic(){
   STATIC.forEach(([sel,tr])=>{const el=document.querySelector(sel);if(!el)return;if(el.dataset.en==null)el.dataset.en=el.innerHTML;el.innerHTML=LANG==="tr"?tr:el.dataset.en;});
   document.querySelectorAll(".legend span").forEach((el,i)=>{const n=el.lastChild;if(el.dataset.en==null)el.dataset.en=n.textContent;n.textContent=LANG==="tr"?LEG_TR[i]:el.dataset.en;});
   const b=document.getElementById("langBtn");if(b){b.textContent=LANG==="tr"?"EN":"TR";b.setAttribute("aria-label",LANG==="tr"?"Switch to English":"Türkçeye geç");}
+}
+
+/* ---------- reliability ---------- */
+function checkBox(){
+  const nA=R.liaisons.filter(l=>!l.verified).length,nT=R.liaisons.length;
+  const col=(cls,h,items)=>`<div class="card ${cls}"><h3>${h}</h3><ul>${items.map(x=>`<li>${x}</li>`).join("")}</ul></div>`;
+  document.getElementById("checkBox").innerHTML=
+  col("ok",t("Confirmed from the organiser's documents","Organizasyonun dokümanlarından doğrulandı"),[
+    t("<b>Time card:</b> every time and distance is identical to the official time schedule V17 (22 October).","<b>Zaman karnesi:</b> her saat ve mesafe resmi zaman çizelgesi V17 (22 Ekim) ile birebir aynı."),
+    t("<b>SS1 to SS13, road, start and finish:</b> placed with the organiser's 40 GPS spectator points and their official km. Typical difference under 30 m.","<b>SS1-SS13, yol, start ve finiş:</b> organizasyonun 40 GPS seyirci noktası ve resmi km değerleriyle yerleştirildi. Fark genelde 30 m'nin altında."),
+    t("<b>SS9 = SS5 + link + SS13 (first 7.83 km) + SS6:</b> the same GPS points appear in each stage with matching km.","<b>SS9 = SS5 + bağlantı + SS13 (ilk 7,83 km) + SS6:</b> aynı GPS noktaları her etapta birbirini tutan km ile geçiyor."),
+    t("<b>Recce days and times:</b> organiser's recce timetable V2 and regulations art. 6.2.","<b>Keşif gün ve saatleri:</b> organizasyonun keşif çizelgesi V2 ve yönetmelik md. 6.2."),
+    t("<b>Service park, parc fermé, admin checks:</b> addresses from the regulations and Bulletin 1; pins from the Google Maps places.","<b>Servis alanı, kapalı park, idari kontrol:</b> adresler yönetmelik ve Bülten 1'den; pinler Google Maps'teki yerlerden.")])+
+  col("est",t("Our estimates (useful, not official)","Bizim tahminlerimiz (işe yarar, resmi değil)"),[
+    t("<b>Hairpins, corner counts, climb, elevation profile:</b> computed from map data. They are not pace notes.","<b>Firkete ve viraj sayıları, tırmanış, yükseklik profili:</b> harita verisinden hesaplandı. Yol notu değildir."),
+    t("<b>TC pins:</b> placed at the official TC to start distance before the start line (TC1/5/9 is the organiser's own point). <b>Stop pins:</b> at the official stop km.","<b>TC pinleri:</b> start çizgisinden resmi TC-start mesafesi kadar geriye kondu (TC1/5/9 organizasyonun kendi noktası). <b>Stop pinleri:</b> resmi stop km'sinde."),
+    t("<b>Daylight / sunset / dark labels:</b> from the sunset time in the schedule (17:03).","<b>Aydınlık / gün batımı / karanlık etiketleri:</b> çizelgedeki gün batımı saatinden (17:03)."),
+    t("<b>Main roads listed for each road section:</b> the roads this map follows, from OpenStreetMap.","<b>Her normal etap için yazılan ana yollar:</b> bu haritanın izlediği yollar, OpenStreetMap'ten."),
+    t("<b>SS14 recce return loop:</b> read from the arrows on the organiser's recce plan; the distance is ours.","<b>SS14 keşif dönüş turu:</b> organizasyonun keşif planındaki oklardan okundu; mesafe bizim hesabımız.")])+
+  col("chk",t("Check before you rely on it","Güvenmeden önce kontrol et"),[
+    t("<b>SS14 start and finish:</b> about ±150 m. No organiser GPS points were published for this stage.","<b>SS14 start ve finiş:</b> yaklaşık ±150 m. Bu etap için organizasyon GPS noktası yayınlamadı."),
+    t(`<b>${nA} of ${nT} road sections:</b> the line is approximate (marked in the Route table and dashed on the map). Follow the road book.`,`<b>${nT} normal etabın ${nA} tanesi:</b> çizgi yaklaşık (Güzergah tablosunda işaretli, haritada kesikli). Road book'a uy.`),
+    t("<b>Pignans regroup and the podium pin:</b> approximate positions. The exact spots are not published.","<b>Pignans regrup ve podyum pini:</b> yaklaşık konum. Tam yerleri yayınlanmadı."),
+    t("<b>Shakedown access:</b> suggested roads only. The shorter option is not verified.","<b>Shakedown'a gidiş:</b> sadece öneri. Kısa seçenek doğrulanmadı."),
+    t("<b>SS10, TC to start:</b> the timing says 0.30 km, but 0.05 km for SS3 and SS8 at the same place.","<b>SS10, TC-start arası:</b> çizelge 0,30 km diyor, aynı yerdeki SS3 ve SS8 için 0,05 km."),
+    t("<b>Totals:</b> the regulations say 624.92 km and 191.15 km of stages; the timing V17 says 622.92 and 191.16. This site uses the timing.","<b>Toplamlar:</b> yönetmelik 624,92 km ve 191,15 km etap diyor; çizelge V17 622,92 ve 191,16. Bu site çizelgeyi kullanıyor."),
+    t("<b>Not published yet:</b> entry list (due Friday 20 November, 12:00), start order, road book, the real time card. Enter your own minutes in the time card.","<b>Henüz yayınlanmadı:</b> kayıt listesi (20 Kasım Cuma 12:00'de bekleniyor), start sırası, road book, gerçek zaman karnesi. Zaman karnesine kendi dakikanı gir."),
+    t("<b>Translations:</b> the French original prevails.","<b>Çeviriler:</b> şüphede Fransızca orijinal geçerlidir.")]);
 }
 
 /* ---------- overlap diagram ---------- */
@@ -447,7 +487,7 @@ function select(k){
     ${ex?`<div class="note">${ex}</div>`:""}
     ${s.approx?`<div class="note warn">${t("Start and finish of this stage are derived from official distances (no organiser GPS points published): about ±150 m.","Bu etabın start ve finişi resmi mesafelerden çıkarıldı (organizasyon GPS noktası yayınlamadı): yaklaşık ±150 m.")}</div>`:""}
     ${profile(s)}
-    <div class="pts">${k!=="SHK"?`<b>TC</b><span>${t(fmt(s.tc_dist)+" km before the start","starttan "+fmt(s.tc_dist)+" km önce")} · ${gm(p.tc)}</span>`:""}<b>Start</b><span>${gm(p.start)}</span><b>${t("Finish","Finiş")}</b><span>${t("flying finish km","uçan finiş km")} ${fmt(s.length)} · ${gm(p.finish)}</span><b>Stop</b><span>${gm(p.stop)}</span></div>
+    <p class="small">${s.approx?t("Pins here are approximate (about ±150 m): confirm with the road book.","Buradaki pinler yaklaşık (±150 m civarı): road book ile teyit et."):t("Start and finish pins come from the organiser's km points (typically within 30 m). TC and stop pins are placed from the official distances. Confirm on recce.","Start ve finiş pinleri organizasyonun km noktalarından geliyor (genelde 30 m içinde). TC ve stop pinleri resmi mesafelerden yerleştirildi. Keşifte teyit et.")}</p><div class="pts">${k!=="SHK"?`<b>TC</b><span>${t(fmt(s.tc_dist)+" km before the start","starttan "+fmt(s.tc_dist)+" km önce")} · ${gm(p.tc)}</span>`:""}<b>Start</b><span>${gm(p.start)}</span><b>${t("Finish","Finiş")}</b><span>${t("flying finish km","uçan finiş km")} ${fmt(s.length)} · ${gm(p.finish)}</span><b>Stop</b><span>${gm(p.stop)}</span></div>
     <div class="small">${t("Roads","Yollar")}: ${roadsTxt(s.roads)}</div>
     ${zp?`<div class="tablebox"><table><thead><tr><th>${t("Spectator point","Seyirci noktası")}</th><th class="n">${t("Official km","Resmi km")}</th><th class="n">${t("Map check","Harita farkı")}</th><th>${t("Location","Konum")}</th></tr></thead><tbody>${zp}</tbody></table></div>`:""}
     ${s.video?`<p class="small"><a href="${s.video}" target="_blank" rel="noopener">${t("Organiser's stage video (YouTube)","Organizasyonun etap videosu (YouTube)")}</a></p>`:""}`;
@@ -540,7 +580,7 @@ async function docs(){
 const TERMS=[["Épreuve spéciale (ES)","Special stage (SS)","Özel etap (ÖE)"],["Contrôle horaire (CH)","Time control (TC)","Zaman kontrol (ZK)"],["Départ","Start","Start"],["Arrivée lancée","Flying finish","Uçan finiş"],["Point stop","Stop control","Stop noktası"],["Liaison","Road section","Normal etap"],["Carnet de bord / de contrôle","Time card","Zaman karnesi"],["Carnet d'itinéraire","Road book","Road book (yol kitabı)"],["Temps idéal (TI)","Target time","Hedef süre (ideal zaman)"],["Parc d'assistance","Service park","Servis alanı"],["Regroupement","Regroup","Regrup (toplanma)"],["Reclassement","Final regroup (re-ordering)","Final regrup"],["Parc fermé","Parc fermé","Kapalı park"],["Reconnaissances","Recce","Keşif"],["Ouvreur","Opening car / notes crew","Önden giden araç"],["Directeur de course","Clerk of the course","Yarış direktörü"],["Commissaires sportifs","Stewards","Komiserler"],["Vérifications techniques","Scrutineering","Teknik kontrol"],["Zone public (ZP)","Spectator zone","Seyirci bölgesi"],["PK","Kilometre point","Kilometre noktası"],["Corde protégée","Protected corner (stakes)","Korunan viraj içi (kazık)"]];
 function terms(){document.querySelector("#terms-t tbody").innerHTML=TERMS.map(r=>`<tr>${r.map(x=>`<td>${esc(x)}</td>`).join("")}</tr>`).join("");}
 
-function renderAll(){applyStatic();diagram();chips();select(sel||"ALL");route();timecard();recce();docs();}
+function renderAll(){applyStatic();checkBox();diagram();chips();select(sel||"ALL");route();timecard();recce();docs();}
 const btn=document.getElementById("langBtn");
 if(btn)btn.addEventListener("click",()=>{LANG=LANG==="tr"?"en":"tr";try{localStorage.setItem("lang",LANG)}catch(e){}if(map)map.closePopup();renderAll();});
 initMap();terms();renderAll();
