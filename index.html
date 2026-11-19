@@ -812,7 +812,7 @@ function folHud(){
     big=km.toFixed(2);stat=fol.along>tot-15?t("Flying finish","Uçan finiş"):t(`${left.toFixed(2)} km to the finish`,`Finişe ${left.toFixed(2).replace(".",",")} km`);
   }
   hud.style.setProperty("--fc",COL[fol.k]);
-  hud.innerHTML=`<button type="button" class="fx" id="fExit" aria-label="${t("Close","Kapat")}">✕</button><div style="flex:1;min-width:0"><div class="fname">${label(fol.k)} · ${esc(s.name)}</div><div class="fstat">${esc(stat)}${fol.acc?` · GPS ±${Math.round(fol.acc)} m`:""}${fol.sim?" · "+t("SIMULATION","SİMÜLASYON"):""}</div></div><div class="fkm"><b>${big||"-.--"}</b><span>${sub}</span></div>`;
+  hud.innerHTML=`<button type="button" class="fx" id="fExit" aria-label="${t("Close","Kapat")}">✕</button><div style="flex:1;min-width:0"><div class="fname">${label(fol.k)} · ${esc(s.name)}</div><div class="fstat">${esc(stat)}${fol.acc?` · GPS ±${Math.round(fol.acc)} m`:""}${fol.t&&!fol.sim&&Date.now()-fol.t>12000?" · "+t(`position ${Math.round((Date.now()-fol.t)/1000)} s old, updating`,`konum ${Math.round((Date.now()-fol.t)/1000)} sn önceki, güncelleniyor`):""}${fol.sim?" · "+t("SIMULATION","SİMÜLASYON"):""}</div></div><div class="fkm"><b>${big||"-.--"}</b><span>${sub}</span></div>`;
   const p=s.points,nb=baseMode==="street"?t("Street","Sokak"):baseMode==="sat"?t("Satellite","Uydu"):t("Plain","Sade");
   bar.innerHTML=`<button type="button" id="fLock" aria-pressed="${fol.lock}">${t("Follow me","Beni takip et")}</button><button type="button" id="fBase">${t("Map","Harita")}: ${nb}</button><a href="https://www.google.com/maps/dir/?api=1&destination=${(fol.k==="SHK"?p.start:p.tc).join(",")}" target="_blank" rel="noopener">${t("Drive to the start (Google Maps)","Starta git (Google Maps)")}</a><button type="button" id="fSim" aria-pressed="${!!fol.sim}">${t("Try it (simulation)","Dene (simülasyon)")}</button>`;
   document.getElementById("fExit").onclick=folExit;
@@ -822,7 +822,7 @@ function folHud(){
 }
 function folUpdate(lat,lon,acc,heading){
   if(!fol.on)return;
-  fol.pos=[lat,lon];fol.acc=acc;fol.err="";
+  fol.pos=[lat,lon];fol.acc=acc;fol.err="";fol.t=Date.now();
   const r=folProject(lat,lon);fol.along=r.along;fol.off=r.d;
   const cls="fpos"+(heading!=null&&!isNaN(heading)?" h":"");
   const ic=L.divIcon({className:"",iconSize:[22,22],iconAnchor:[11,11],html:`<div class="${cls}" style="position:relative;transform:rotate(${heading||0}deg)"></div>`});
@@ -868,6 +868,8 @@ function folEnter(k){
   g.addTo(map);fol.layer=g;
   document.body.classList.add("follow");document.getElementById("fHud").hidden=false;document.getElementById("fBar").hidden=false;
   map.invalidateSize();map.fitBounds(L.latLngBounds(fol.pts).pad(.12));
+  try{localStorage.setItem("follow",k)}catch(e){}
+  fol.t=0;fol.tick=setInterval(()=>{if(fol.on&&fol.t&&Date.now()-fol.t>12000)folHud();},4000);
   folHud();folStartGps();folWake();
 }
 function folExit(){
@@ -875,12 +877,21 @@ function folExit(){
   if(fol.watch!=null){navigator.geolocation.clearWatch(fol.watch);fol.watch=null;}
   if(fol.sim){clearInterval(fol.sim);fol.sim=null;}
   try{if(fol.wake)fol.wake.release();}catch(e){}fol.wake=null;
+  clearInterval(fol.tick);try{localStorage.removeItem("follow")}catch(e){}
   map.removeLayer(fol.layer);fol.layer=null;fol.on=false;
   document.body.classList.remove("follow");document.getElementById("fHud").hidden=true;document.getElementById("fBar").hidden=true;
   liaLayer.addTo(map);Object.values(layers).forEach(x=>x.addTo(map));
   map.invalidateSize();select(fol.k);
 }
-document.addEventListener("visibilitychange",()=>{if(fol.on&&!document.hidden)folWake();});
+document.addEventListener("visibilitychange",()=>{
+  if(!fol.on||document.hidden)return;
+  folWake();
+  if(fol.sim||!("geolocation" in navigator))return;
+  if(fol.watch!=null){navigator.geolocation.clearWatch(fol.watch);fol.watch=null;}
+  fol.idx=-1;folHud();
+  navigator.geolocation.getCurrentPosition(p=>folUpdate(p.coords.latitude,p.coords.longitude,p.coords.accuracy,p.coords.heading),()=>{},{enableHighAccuracy:true,maximumAge:0,timeout:10000});
+  folStartGps();
+});
 
 /* ---------- install and offline ---------- */
 let deferredInstall=null,offMsg="";
@@ -928,6 +939,7 @@ if(btn)btn.addEventListener("click",()=>{LANG=LANG==="tr"?"en":"tr";try{localSto
 initMap();terms();renderAll();
 document.getElementById("sheet").addEventListener("click",e=>{const b=e.target.closest("[data-follow]");if(b)folEnter(b.dataset.follow);});
 if(map)map.on("dragstart",()=>{if(fol.on&&fol.lock){fol.lock=false;folHud();}});
+try{const fk=localStorage.getItem("follow");if(map&&fk&&R.stages[fk]){select(fk);folEnter(fk);}}catch(e){}
 document.getElementById("liveBtn").addEventListener("click",liveCheck);liveCheck();setInterval(()=>{if(!document.hidden)liveCheck();},180000);
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{diagram();if(map&&baseMode==="plain")drawBackground();select(sel);});
 })();
