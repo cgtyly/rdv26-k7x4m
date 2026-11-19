@@ -420,10 +420,11 @@ function gate(){
 }
 
 /* ---------- feedback to the developer (WhatsApp) ---------- */
-const BUILD="2026-11-19 22:17",FB_WA="905517023585";
+const BUILD="2026-11-19 22:18",FB_WA="905517023585";
 const FB_SEC={top:"Açılış",live:"Canlı (resmi site kutusu)",check:"Güvenilirlik",overlap:"Etap çakışması şeması",stages:"Harita ve etaplar",route:"Güzergah tablosu",timecard:"Zaman karnesi",recce:"Keşif planı",docs:"Dokümanlar",terms:"Terimler"};
 const FB_TYPES=[["Hata (yanlış bilgi ya da çalışmayan bir şey)","Something is wrong or not working"],["Eksik bilgi","Missing information"],["Görünüm (yer, boyut, renk)","Layout, size or colour"],["Yeni özellik","New feature"]];
-const fb={open:false,step:1,screen:"",type:0,urgent:false,now:"",want:"",warn:""};
+const AI_URL="https://rdv26-fb-k7x4m.netlify.app/api/feedback";
+const fb={open:false,step:1,screen:"",type:0,urgent:false,now:"",want:"",warn:"",ai:null,answers:[],aiNote:""};
 function fbContext(){
   if(fol.on)return "Takip modu: "+label(fol.k)+" "+R.stages[fol.k].name;
   let best=null;Object.keys(FB_SEC).forEach(id=>{const el=document.getElementById(id);if(!el)return;const r=el.getBoundingClientRect(),v=Math.min(r.bottom,innerHeight)-Math.max(r.top,0);if(v>0&&(!best||v>best.v))best={id,v};});
@@ -435,7 +436,23 @@ function fbMessage(){
   const u=me?USERS[me].name+" ("+USERS[me].role[1].toLowerCase()+")":"bilinmiyor";
   const dev=/android/i.test(navigator.userAgent)?"Android":/iphone|ipad/i.test(navigator.userAgent)?"iPhone":"bilgisayar";
   const app=window.Capacitor&&window.Capacitor.isNativePlatform&&window.Capacitor.isNativePlatform()?"APK":"web";
-  return `*RdV 2026 geri bildirim*\nKimden: ${u}\nEkran: ${fb.screen}\nTür: ${FB_TYPES[fb.type][0]}\nÖncelik: ${fb.urgent?"Yarıştan önce şart":"Acil değil"}\nŞu an: ${fb.now.trim()||"(yazılmadı)"}\nİstenen: ${fb.want.trim()}\n---\nSürüm ${BUILD} · ${dev} ${app} · dil ${LANG.toUpperCase()} · harita ${baseMode} · ${navigator.onLine?"çevrimiçi":"çevrimdışı"}`;
+  return `*RdV 2026 geri bildirim*\nKimden: ${u}\nEkran: ${fb.screen}\nTür: ${FB_TYPES[fb.type][0]}\nÖncelik: ${fb.urgent?"Yarıştan önce şart":"Acil değil"}\n${fb.ai?"Yapay zeka özeti (kullanıcı onayladı):\n"+fb.ai.message.trim()+"\n\nKullanıcının kendi sözleri:\n":""}Şu an: ${fb.now.trim()||"(yazılmadı)"}\nİstenen: ${fb.want.trim()}${fb.answers.length?"\n"+fb.answers.map(x=>"Soru: "+x.q+"\nCevap: "+x.a).join("\n"):""}\n---\nSürüm ${BUILD} · ${dev} ${app} · dil ${LANG.toUpperCase()} · harita ${baseMode} · ${navigator.onLine?"çevrimiçi":"çevrimdışı"}`;
+}
+async function fbAsk(){
+  fb.aiNote="";
+  if(!navigator.onLine){fb.ai=null;fb.aiNote=t("No internet: the assistant was skipped.","İnternet yok: yardımcı atlandı.");fb.step=2;fbRender();return;}
+  fb.step="wait";fbRender();
+  try{
+    const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),15000);
+    const r=await fetch(AI_URL,{method:"POST",headers:{"content-type":"application/json"},signal:ctl.signal,body:JSON.stringify({screen:fb.screen,type:FB_TYPES[fb.type][0],lang:LANG,now:fb.now,want:fb.want,answers:fb.answers})});
+    clearTimeout(tm);
+    if(!r.ok)throw new Error("http "+r.status);
+    const j=await r.json();
+    if(!j||typeof j.understood!=="string"||typeof j.message!=="string")throw new Error("shape");
+    fb.ai={understood:j.understood,questions:Array.isArray(j.questions)?j.questions.slice(0,2):[],ready:!!j.ready,message:j.message};
+    fb.step="ai";
+  }catch(e){fb.ai=null;fb.aiNote=t("The assistant is not available right now. The message below uses your own words.","Yardımcı şu an kullanılamıyor. Aşağıdaki mesaj senin kendi sözlerinle hazırlandı.");fb.step=2;}
+  if(fb.open)fbRender();
 }
 function fbRender(){
   const b=document.getElementById("fbBtn"),p=document.getElementById("fbPanel");
@@ -455,18 +472,31 @@ function fbRender(){
     const read=()=>{fb.screen=document.getElementById("fbScr").value;fb.type=+document.getElementById("fbType").value;fb.now=document.getElementById("fbNow").value;fb.want=document.getElementById("fbWant").value;fb.urgent=document.getElementById("fbUrg").checked;};
     document.getElementById("fbNext").onclick=()=>{read();
       if(fb.want.trim().length<12){fb.warn=t("Say a little more about what it should be: which button, which number, which place.","Ne olması gerektiğini biraz daha aç: hangi düğme, hangi sayı, hangi yer.");fbRender();return;}
-      fb.warn="";fb.step=2;fbRender();};
+      fb.warn="";fb.ai=null;fb.answers=[];fbAsk();};
     document.getElementById("fbClose").onclick=()=>{read();fb.open=false;fbRender();};
+  }else if(fb.step==="wait"){
+    p.innerHTML=`<div class="in"><h3>${t("Reading what you wrote…","Yazdığını okuyorum…")}</h3><p class="small">${t("A few seconds.","Birkaç saniye.")}</p><div class="row"><button type="button" class="sec" id="fbSkip">${t("Skip the assistant","Yardımcıyı atla")}</button></div></div>`;
+    document.getElementById("fbSkip").onclick=()=>{fb.ai=null;fb.step=2;fbRender();};
+  }else if(fb.step==="ai"){
+    const qs=fb.ai.questions,canAsk=qs.length&&fb.answers.length<4;
+    p.innerHTML=`<div class="in"><h3>${t("Here is how I understood you","Seni şöyle anladım")}</h3>
+      <pre>${esc(fb.ai.understood)}</pre>
+      ${canAsk?qs.map((q,i)=>`<label for="fbA${i}">${esc(q)}</label><textarea id="fbA${i}" style="min-height:54px"></textarea>`).join(""):""}
+      <p class="small">${t("Written by an AI assistant from your words. If it got something wrong, correct it.","Bunu bir yapay zeka yardımcısı senin sözlerinden yazdı. Yanlış anladıysa düzelt.")}</p>
+      <div class="row">${canAsk?`<button type="button" class="pri" id="fbAns">${t("Send my answers","Cevaplarımı gönder")}</button>`:""}<button type="button" class="${canAsk?"sec":"pri"}" id="fbOk">${t("That is right, prepare the message","Doğru anladın, mesajı hazırla")}</button><button type="button" class="sec" id="fbEdit">${t("No, let me rewrite","Hayır, baştan yazayım")}</button></div></div>`;
+    if(canAsk)document.getElementById("fbAns").onclick=()=>{let any=false;qs.forEach((q,i)=>{const a=document.getElementById("fbA"+i).value.trim();if(a){fb.answers.push({q,a});any=true;}});if(any)fbAsk();};
+    document.getElementById("fbOk").onclick=()=>{fb.step=2;fbRender();};
+    document.getElementById("fbEdit").onclick=()=>{fb.ai=null;fb.answers=[];fb.step=1;fbRender();};
   }else{
     const msg=fbMessage(),url="https://wa.me/"+FB_WA+"?text="+encodeURIComponent(msg);
     p.innerHTML=`<div class="in"><h3>${t("Is this what you mean?","Bunu mu demek istiyorsun?")}</h3>
       <p class="small">${t("This exact message goes to Çağatay on WhatsApp. If it is right, send it. You can add a screenshot in WhatsApp before sending.","Bu mesaj aynen WhatsApp'tan Çağatay'a gidecek. Doğruysa gönder. Göndermeden önce WhatsApp'ta ekran görüntüsü ekleyebilirsin.")}</p>
-      <pre>${esc(msg)}</pre>
+      ${fb.aiNote?`<p class="small" style="color:var(--stop)">${esc(fb.aiNote)}</p>`:""}<pre>${esc(msg)}</pre>
       <div class="row"><a class="pri" id="fbSend" href="${url}" target="_blank" rel="noopener">${t("Yes, send on WhatsApp","Evet, WhatsApp'ta gönder")}</a><button type="button" class="sec" id="fbEdit">${t("No, change it","Hayır, düzelt")}</button><button type="button" class="sec" id="fbCopy">${t("Copy","Kopyala")}</button><button type="button" class="sec" id="fbClose">${t("Close","Kapat")}</button></div>
       <div class="small" id="fbNote" aria-live="polite"></div></div>`;
     document.getElementById("fbEdit").onclick=()=>{fb.step=1;fbRender();};
     document.getElementById("fbClose").onclick=()=>{fb.open=false;fbRender();};
-    document.getElementById("fbSend").onclick=()=>{setTimeout(()=>{fb.now="";fb.want="";fb.urgent=false;fb.open=false;fbRender();},600);};
+    document.getElementById("fbSend").onclick=()=>{setTimeout(()=>{fb.now="";fb.want="";fb.urgent=false;fb.ai=null;fb.answers=[];fb.open=false;fbRender();},600);};
     document.getElementById("fbCopy").onclick=async()=>{const n=document.getElementById("fbNote");try{await navigator.clipboard.writeText(msg);n.textContent=t("Copied.","Kopyalandı.");}catch(e){n.textContent=t("Could not copy. Select the text above by hand.","Kopyalanamadı. Yukarıdaki metni elle seç.");}};
   }
 }
