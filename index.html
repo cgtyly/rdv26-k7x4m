@@ -397,11 +397,11 @@ function applyStatic(){
 }
 
 /* ---------- sign in (who is using the app) ---------- */
-const USERS={kutay:{name:"Kutay",role:["Co-driver","Co-pilot"],h:"86f803042ee7f5db05fced03cccbf57ae0d185c50446f287f00778e9bc958e18"},deniz:{name:"Deniz",role:["Driver","Pilot"],h:"68d3ebc01e68041fc979c2835abee300d622c1ec7db4c3c3f14b49a062906959"}};
+const USERS={kutay:{name:"Kutay Ertuğrul",short:"Kutay",role:["Co-driver","Co-pilot"],h:"86f803042ee7f5db05fced03cccbf57ae0d185c50446f287f00778e9bc958e18"},demir:{name:"Demir Sancaklı",short:"Demir",role:["Driver","Pilot"],h:"d2e1532ae38ec0598308f2303f1fdbde57e52060cf83e53ea81d06f31dcb579c"}};
 let me=null,gateSel="kutay",gateErr="";
 try{const u=localStorage.getItem("user");if(USERS[u])me=u;}catch(e){}
 async function pinHash(u,p){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("rdv26|"+u+"|"+p));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
-function userChip(){const b=document.getElementById("userBtn");if(!b)return;b.hidden=!me;if(me){b.textContent=USERS[me].name+" · "+t("Sign out","Çıkış");b.onclick=()=>{if(fol.on)folExit();me=null;try{localStorage.removeItem("user")}catch(e){}gate();};}}
+function userChip(){const b=document.getElementById("userBtn");if(!b)return;b.hidden=!me;if(me){b.textContent=USERS[me].short+" · "+t("Sign out","Çıkış");b.onclick=()=>{if(fol.on)folExit();me=null;try{localStorage.removeItem("user")}catch(e){}gate();};}}
 function gate(){
   const g=document.getElementById("gate");userChip();
   if(me){g.hidden=true;document.body.classList.remove("locked");return;}
@@ -611,7 +611,7 @@ function liveRender(){
       ?`<li><span class="badge ok">${t("IN PACK","PAKETTE")}</span>${esc(l.text||l.file)}<br><a href="${NATIVE?SITE:""}docs/${LIVE_BASE[l.file]}" ${NATIVE?'target="_blank" rel="noopener"':"download"}>${t("English version","İngilizce sürüm")}</a> · <a href="${esc(l.href)}" target="_blank" rel="noopener">${t("French original","Fransızca orijinal")}</a></li>`
       :`<li><span class="badge">${t("NEW","YENİ")}</span><b>${esc(l.text||l.file)}</b><br><a href="${esc(l.href)}" target="_blank" rel="noopener">${t("Open the French original","Fransızca orijinali aç")}</a> · ${t("not translated yet","henüz çevrilmedi")}<br><span class="small">${esc(l.file)}</span></li>`).join("");
     let extra="";
-    if(p.id===705)extra=p.rows.length?`<div class="tablebox" style="max-height:340px;overflow:auto"><table><tbody>${p.rows.map(r=>`<tr class="${/ERTU[GĞ]RUL/i.test(r.join(" "))?"me":""}">${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:`<p class="small">${t("Still empty. Due Friday 20 November, 12:00.","Hâlâ boş. 20 Kasım Cuma 12:00'de bekleniyor.")}</p>`;
+    if(p.id===705)extra=p.rows.length?`<div class="tablebox" style="max-height:340px;overflow:auto"><table><tbody>${p.rows.map(r=>`<tr class="${/ERTU[GĞ]RUL|SANCAKLI/i.test(r.join(" "))?"me":""}">${r.map(c=>`<td>${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`:`<p class="small">${t("Still empty. Due Friday 20 November, 12:00.","Hâlâ boş. 20 Kasım Cuma 12:00'de bekleniyor.")}</p>`;
     if(p.id===1501&&!p.links.length)extra=`<p class="small">${t("No file online. Handed out at the admin checks.","İnternette dosya yok. İdari kontrolde elden veriliyor.")}</p>`;
     if(p.id===701&&fresh.length)extra=`<p class="note warn">${t("The time schedule file has changed. The time card on this page is still built from V17: compare before you use it.","Zaman çizelgesi dosyası değişmiş. Bu sayfadaki zaman karnesi hâlâ V17'den: kullanmadan önce karşılaştır.")}</p>`;
     return `<div class="card"><h3>${nm}</h3><p class="small">${t("Page last edited","Sayfa son düzenleme")}: ${stamp(p.mod)}${edited&&!fresh.length?" · "+t("edited since this pack was built, same documents","paket hazırlandıktan sonra düzenlenmiş, dokümanlar aynı"):""}</p>${li?`<ul>${li}</ul>`:""}${extra}</div>`;}).join("");
