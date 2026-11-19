@@ -133,6 +133,25 @@ tr.me td{background:color-mix(in srgb,var(--tc) 30%,transparent);font-weight:600
 .rbrow select,.rbrow button{font:600 13px var(--f-body);padding:6px 8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:4px;max-width:100%}
 .rbrow button{cursor:pointer}
 .rbsum{font-size:18px;margin:4px 0}
+body.follow{overflow:hidden}
+body.follow #map{position:fixed!important;inset:0;width:100%;height:100%!important;z-index:1500;border:0}
+body.follow .leaflet-top{top:calc(env(safe-area-inset-top,0px) + 86px)}
+body.follow .leaflet-bottom{bottom:calc(env(safe-area-inset-bottom,0px) + 62px)}
+#fHud{position:fixed;left:0;right:0;top:0;z-index:1600;display:flex;gap:10px;align-items:center;background:#141a22;color:#fff;border-bottom:6px solid var(--fc,#e9a800);padding:calc(env(safe-area-inset-top,0px) + 8px) max(12px,env(safe-area-inset-right,0px)) 8px max(12px,env(safe-area-inset-left,0px))}
+#fHud .fx{font:700 20px/1 var(--f-body);width:40px;height:40px;border-radius:50%;border:1px solid #5a6676;background:transparent;color:#fff;cursor:pointer;flex:none}
+#fHud .fname{font:700 20px/1.1 var(--f-display);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#fHud .fstat{font:400 13px/1.3 var(--f-body);color:#c9d2de}
+#fHud .fkm{text-align:right;flex:none}
+#fHud .fkm b{font:700 34px/1 var(--f-display);font-variant-numeric:tabular-nums}
+#fHud .fkm span{display:block;font:500 12px/1.2 var(--f-data);color:#c9d2de}
+#fBar{position:fixed;left:0;right:0;bottom:0;z-index:1600;display:flex;gap:8px;flex-wrap:wrap;background:#141a22;padding:8px max(12px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 8px) max(12px,env(safe-area-inset-left,0px))}
+#fBar button,#fBar a{font:600 14px/1 var(--f-body);padding:11px 12px;border-radius:5px;border:1px solid #5a6676;background:transparent;color:#fff;text-decoration:none;cursor:pointer}
+#fBar button[aria-pressed="true"]{background:#fff;color:#141a22}
+.fpos{width:22px;height:22px;border-radius:50%;background:#1a73e8;border:3px solid #fff;box-shadow:0 0 0 2px rgba(26,115,232,.45),0 1px 4px rgba(0,0,0,.6)}
+.fpos.h::after{content:"";position:absolute;left:5px;top:-11px;border:6px solid transparent;border-bottom:11px solid #1a73e8}
+.fkmlab{display:inline-block;font:700 11px/1 var(--f-data);background:#141a22;color:#fff;border-radius:3px;padding:2px 4px;transform:translate(-50%,-50%);white-space:nowrap}
+.fpin{display:inline-block;font:700 12px/1 var(--f-body);color:#141a22;border:2px solid #141a22;border-radius:4px;padding:3px 6px;transform:translate(10px,-50%);white-space:nowrap}
+.folbtn{display:block;width:100%;margin:10px 0 4px;font:700 16px var(--f-body);padding:13px;border:0;border-radius:5px;color:#fff;cursor:pointer;text-align:center}
 /* mobile-fix */
 .tablebox a{white-space:nowrap}
 @media (max-width:900px){.diagram svg{min-width:1000px}.tablebox table{min-width:660px}.sheet .tablebox table{min-width:430px}.sheet{padding:12px}nav a{padding:7px 7px}}
@@ -263,6 +282,7 @@ tr.me td{background:color-mix(in srgb,var(--tc) 30%,transparent);font-weight:600
   </section>
 
   <footer>Sources: var-rallye.fr (Moderne documents, spectator dossier QR codes, timing V17), OpenStreetMap contributors (roads), Open-Meteo / Copernicus DEM (elevation). Stage lines are verified against the organiser's GPS points and kilometre markers (typically within 30 m). Road sections follow the organiser's general map; where marked approximate, follow the road book. Corner counts and climbs are estimates from map data, not pace notes.</footer>
+  <div id="fHud" hidden></div><div id="fBar" hidden></div>
 </main>
 
 <script src="vendor/leaflet.min.js"></script>
@@ -668,6 +688,7 @@ function select(k){
   document.getElementById("sheet").innerHTML=`
     <div class="title"><h3>${label(k)} · ${esc(s.name)}</h3><span class="mono">${fmt(s.length)} km</span></div>
     <div class="runs">${runs}</div>
+    <button type="button" class="folbtn" data-follow="${k}" style="background:${COL[k]}">${t("Follow this stage on the map","Bu etabı haritada takip et")}</button><p class="small">${t("Full screen, only this stage in its own colour, your position and the km from the start. For recce.","Tam ekran, sadece bu etap kendi renginde, konumun ve starttan itibaren km. Keşif için.")}</p>
     <div class="kv"><div><b class="mono">${c.hairpin}</b><span>${t("hairpins (est.)","firkete (tahmini)")}</span></div><div><b class="mono">${c.tight}</b><span>${t("tight corners","sert viraj")}</span></div><div><b class="mono">${c.per_km}</b><span>${t("corners per km","km başına viraj")}</span></div>
     <div><b class="mono">+${s.climb} / -${s.descent}</b><span>${t("climb / descent (m)","tırmanış / iniş (m)")}</span></div><div><b class="mono">${s.alt_min}${t(" to "," - ")}${s.alt_max}</b><span>${t("altitude (m)","rakım (m)")}</span></div><div><b class="mono">${s.stop?fmt(s.stop):"n/a"}</b><span>${t("stop control (km)","stop noktası (km)")}</span></div></div>
     ${s.shared?`<div class="note">${esc(t(s.shared,SH_TR[k]||s.shared))}</div>`:""}
@@ -764,6 +785,103 @@ async function docs(){
   }));
 }
 
+/* ---------- follow one stage (recce mode) ---------- */
+const fol={on:false,k:null,watch:null,layer:null,pts:null,cum:null,scale:1,idx:-1,lock:true,marker:null,acc:null,wake:null,sim:null,msg:"",along:null,off:null,err:""};
+function folProject(lat,lon){
+  const P=fol.pts,kx=Math.cos(lat*Math.PI/180)*111320,ky=110540;
+  const scan=(a,b)=>{let best=null;for(let i=Math.max(0,a);i<Math.min(P.length-1,b);i++){
+      const x1=(P[i][1]-lon)*kx,y1=(P[i][0]-lat)*ky,x2=(P[i+1][1]-lon)*kx,y2=(P[i+1][0]-lat)*ky,dx=x2-x1,dy=y2-y1,L2=dx*dx+dy*dy;
+      const tt=L2?Math.max(0,Math.min(1,-(x1*dx+y1*dy)/L2)):0,d=Math.hypot(x1+tt*dx,y1+tt*dy);
+      if(!best||d<best.d)best={d,i,along:fol.cum[i]+tt*(fol.cum[i+1]-fol.cum[i])};}
+    return best;};
+  let r=fol.idx>=0?scan(fol.idx-40,fol.idx+160):null;
+  if(!r||r.d>80)r=scan(0,P.length-1);
+  fol.idx=r.i;return r;
+}
+function folHud(){
+  const s=R.stages[fol.k],hud=document.getElementById("fHud"),bar=document.getElementById("fBar"),tot=fol.cum[fol.cum.length-1];
+  let big="",sub=`/ ${fmt(s.length)} km`,stat="";
+  if(fol.err)stat=fol.err;
+  else if(fol.along==null)stat=t("Waiting for GPS…","GPS bekleniyor…");
+  else if(fol.off>70){
+    if(fol.along<40){const d=map.distance(fol.pos,fol.pts[0]);stat=t(`Start is ${d<1000?Math.round(d)+" m":(d/1000).toFixed(1)+" km"} away (straight line)`,`Start ${d<1000?Math.round(d)+" m":(d/1000).toFixed(1).replace(".",",")+" km"} uzakta (kuş uçuşu)`);}
+    else if(fol.along>tot-40)stat=t("Past the flying finish","Uçan finiş geçildi");
+    else stat=t(`Off the stage: ${Math.round(fol.off)} m from the line`,`Etap dışı: çizgiden ${Math.round(fol.off)} m uzakta`);
+  }else{
+    const km=fol.along*fol.scale/1000,left=Math.max(0,s.length-km);
+    big=km.toFixed(2);stat=fol.along>tot-15?t("Flying finish","Uçan finiş"):t(`${left.toFixed(2)} km to the finish`,`Finişe ${left.toFixed(2).replace(".",",")} km`);
+  }
+  hud.style.setProperty("--fc",COL[fol.k]);
+  hud.innerHTML=`<button type="button" class="fx" id="fExit" aria-label="${t("Close","Kapat")}">✕</button><div style="flex:1;min-width:0"><div class="fname">${label(fol.k)} · ${esc(s.name)}</div><div class="fstat">${esc(stat)}${fol.acc?` · GPS ±${Math.round(fol.acc)} m`:""}${fol.sim?" · "+t("SIMULATION","SİMÜLASYON"):""}</div></div><div class="fkm"><b>${big||"-.--"}</b><span>${sub}</span></div>`;
+  const p=s.points,nb=baseMode==="street"?t("Street","Sokak"):baseMode==="sat"?t("Satellite","Uydu"):t("Plain","Sade");
+  bar.innerHTML=`<button type="button" id="fLock" aria-pressed="${fol.lock}">${t("Follow me","Beni takip et")}</button><button type="button" id="fBase">${t("Map","Harita")}: ${nb}</button><a href="https://www.google.com/maps/dir/?api=1&destination=${(fol.k==="SHK"?p.start:p.tc).join(",")}" target="_blank" rel="noopener">${t("Drive to the start (Google Maps)","Starta git (Google Maps)")}</a><button type="button" id="fSim" aria-pressed="${!!fol.sim}">${t("Try it (simulation)","Dene (simülasyon)")}</button>`;
+  document.getElementById("fExit").onclick=folExit;
+  document.getElementById("fLock").onclick=()=>{fol.lock=!fol.lock;if(fol.lock&&fol.pos)map.setView(fol.pos,Math.max(map.getZoom(),16));folHud();};
+  document.getElementById("fBase").onclick=()=>{setBase(baseMode==="street"?"sat":baseMode==="sat"?"plain":"street",true);folHud();};
+  document.getElementById("fSim").onclick=folSim;
+}
+function folUpdate(lat,lon,acc,heading){
+  if(!fol.on)return;
+  fol.pos=[lat,lon];fol.acc=acc;fol.err="";
+  const r=folProject(lat,lon);fol.along=r.along;fol.off=r.d;
+  const cls="fpos"+(heading!=null&&!isNaN(heading)?" h":"");
+  const ic=L.divIcon({className:"",iconSize:[22,22],iconAnchor:[11,11],html:`<div class="${cls}" style="position:relative;transform:rotate(${heading||0}deg)"></div>`});
+  if(fol.marker)fol.marker.setLatLng(fol.pos).setIcon(ic);else fol.marker=L.marker(fol.pos,{icon:ic,interactive:false,zIndexOffset:1000}).addTo(fol.layer);
+  if(fol.lock)map.setView(fol.pos,Math.max(map.getZoom(),16),{animate:true});
+  folHud();
+}
+function folSim(){
+  if(fol.sim){clearInterval(fol.sim);fol.sim=null;folStartGps();folHud();return;}
+  if(fol.watch!=null){navigator.geolocation.clearWatch(fol.watch);fol.watch=null;}
+  let a=0;const tot=fol.cum[fol.cum.length-1];fol.idx=-1;fol.lock=true;
+  fol.sim=setInterval(()=>{a+=45;if(a>=tot){a=tot;clearInterval(fol.sim);fol.sim=null;}
+    let i=0;while(i<fol.cum.length-2&&fol.cum[i+1]<a)i++;
+    const f=(a-fol.cum[i])/Math.max(1e-6,fol.cum[i+1]-fol.cum[i]),A=fol.pts[i],B=fol.pts[i+1];
+    const hd=Math.atan2((B[1]-A[1])*Math.cos(A[0]*Math.PI/180),B[0]-A[0])*180/Math.PI;
+    folUpdate(A[0]+f*(B[0]-A[0]),A[1]+f*(B[1]-A[1]),5,hd);},400);
+  folHud();
+}
+function folStartGps(){
+  if(!("geolocation" in navigator)){fol.err=t("This device gives no location.","Bu cihaz konum vermiyor.");return;}
+  fol.watch=navigator.geolocation.watchPosition(p=>{if(!fol.sim)folUpdate(p.coords.latitude,p.coords.longitude,p.coords.accuracy,p.coords.heading);},
+    e=>{fol.err=e.code===1?t("Location is blocked. Allow location for this page and reopen.","Konum izni kapalı. Bu sayfa için konuma izin verip yeniden aç."):t("No GPS signal yet.","Henüz GPS sinyali yok.");folHud();},
+    {enableHighAccuracy:true,maximumAge:1000,timeout:20000});
+}
+async function folWake(){try{if("wakeLock" in navigator&&fol.on)fol.wake=await navigator.wakeLock.request("screen");}catch(e){}}
+function folEnter(k){
+  if(!map||fol.on)return;
+  const s=R.stages[k];fol.on=true;fol.k=k;fol.idx=-1;fol.lock=true;fol.along=null;fol.off=null;fol.acc=null;fol.err="";fol.marker=null;fol.pos=null;
+  fol.pts=dec(s.line);fol.cum=[0];for(let i=1;i<fol.pts.length;i++)fol.cum.push(fol.cum[i-1]+map.distance(fol.pts[i-1],fol.pts[i]));
+  fol.scale=s.length*1000/fol.cum[fol.cum.length-1];
+  map.closePopup();
+  if(ovGroup){map.removeLayer(ovGroup);ovGroup=null;}
+  map.removeLayer(liaLayer);Object.values(layers).forEach(g=>map.removeLayer(g));
+  const g=L.layerGroup(),c=COL[k],p=s.points;
+  L.polyline(dec(s.approach),{color:c,weight:3,opacity:.9,dashArray:"3 6",interactive:false}).addTo(g);
+  L.polyline(dec(s.stopzone),{color:c,weight:4,opacity:.9,dashArray:"3 6",interactive:false}).addTo(g);
+  L.polyline(fol.pts,{color:"#ffffff",weight:12,opacity:.95,interactive:false}).addTo(g);
+  L.polyline(fol.pts,{color:c,weight:7,opacity:1,interactive:false}).addTo(g);
+  s.km.forEach(m=>L.marker([m[1],m[2]],{interactive:false,icon:L.divIcon({className:"",iconSize:null,html:`<span class="fkmlab">${m[0]}</span>`})}).addTo(g));
+  const pin=(ll,txt,bg)=>{L.circleMarker(ll,{radius:8,color:"#141a22",weight:3,fillColor:bg,fillOpacity:1,interactive:false}).addTo(g);L.marker(ll,{interactive:false,icon:L.divIcon({className:"",iconSize:null,html:`<span class="fpin" style="background:${bg}">${txt}</span>`})}).addTo(g);};
+  if(k!=="SHK")pin(p.tc,"TC","#ffbe1f");
+  pin(p.start,"START","#2fbf6a");pin(p.finish,t("FINISH","FİNİŞ"),"#ffffff");pin(p.stop,"STOP","#ff5045");
+  g.addTo(map);fol.layer=g;
+  document.body.classList.add("follow");document.getElementById("fHud").hidden=false;document.getElementById("fBar").hidden=false;
+  map.invalidateSize();map.fitBounds(L.latLngBounds(fol.pts).pad(.12));
+  folHud();folStartGps();folWake();
+}
+function folExit(){
+  if(!fol.on)return;
+  if(fol.watch!=null){navigator.geolocation.clearWatch(fol.watch);fol.watch=null;}
+  if(fol.sim){clearInterval(fol.sim);fol.sim=null;}
+  try{if(fol.wake)fol.wake.release();}catch(e){}fol.wake=null;
+  map.removeLayer(fol.layer);fol.layer=null;fol.on=false;
+  document.body.classList.remove("follow");document.getElementById("fHud").hidden=true;document.getElementById("fBar").hidden=true;
+  liaLayer.addTo(map);Object.values(layers).forEach(x=>x.addTo(map));
+  map.invalidateSize();select(fol.k);
+}
+document.addEventListener("visibilitychange",()=>{if(fol.on&&!document.hidden)folWake();});
+
 /* ---------- install and offline ---------- */
 let deferredInstall=null,offMsg="";
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e;offlineCard();});
@@ -808,6 +926,8 @@ function renderAll(){applyStatic();offlineCard();mapTools();rbRender();liveRende
 const btn=document.getElementById("langBtn");
 if(btn)btn.addEventListener("click",()=>{LANG=LANG==="tr"?"en":"tr";try{localStorage.setItem("lang",LANG)}catch(e){}if(map)map.closePopup();renderAll();});
 initMap();terms();renderAll();
+document.getElementById("sheet").addEventListener("click",e=>{const b=e.target.closest("[data-follow]");if(b)folEnter(b.dataset.follow);});
+if(map)map.on("dragstart",()=>{if(fol.on&&fol.lock){fol.lock=false;folHud();}});
 document.getElementById("liveBtn").addEventListener("click",liveCheck);liveCheck();setInterval(()=>{if(!document.hidden)liveCheck();},180000);
 matchMedia("(prefers-color-scheme: dark)").addEventListener("change",()=>{diagram();if(map&&baseMode==="plain")drawBackground();select(sel);});
 })();
